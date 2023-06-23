@@ -48,13 +48,10 @@ def _add_to_group(user, group):
             env["PATH"] = "/usr/sbin:/sbin:" + env["PATH"]
         try:
             output = subprocess.check_output(["adduser", user, group], env=env)
-            logger.debug("Added {} to {}: {}".format(user, group, output))
+            logger.debug(f"Added {user} to {group}: {output}")
             return True
-        # except FileNotFoundError:
-        #     logger.error("Couldn't add {} to {}: adduser command not found".format(user, group))
-        #     return False
         except subprocess.CalledProcessError as e:
-            logger.error("Couldn't add {} to {}".format(user, group))
+            logger.error(f"Couldn't add {user} to {group}")
             return False
 
 
@@ -73,13 +70,18 @@ class Arduino(umake.frameworks.baseinstaller.BaseInstaller):
         if os.geteuid() != 0:
             self._current_user = os.getenv("USER")
         self._current_user = pwd.getpwuid(int(os.getenv("SUDO_UID", default=0))).pw_name
-        for group_name in [g.gr_name for g in grp.getgrall() if self._current_user in g.gr_mem]:
-            if group_name == self.ARDUINO_GROUP:
-                self.was_in_arduino_group = True
-                break
-        else:
-            self.was_in_arduino_group = False
-
+        self.was_in_arduino_group = next(
+            (
+                True
+                for group_name in [
+                    g.gr_name
+                    for g in grp.getgrall()
+                    if self._current_user in g.gr_mem
+                ]
+                if group_name == self.ARDUINO_GROUP
+            ),
+            False,
+        )
         super().__init__(name="Arduino", description=_("Arduino"),
                          only_on_archs=['amd64'],
                          download_page="https://api.github.com/repos/arduino/arduino-ide/releases/latest",
@@ -126,13 +128,18 @@ class ArduinoLegacy(umake.frameworks.baseinstaller.BaseInstaller):
         if os.geteuid() != 0:
             self._current_user = os.getenv("USER")
         self._current_user = pwd.getpwuid(int(os.getenv("SUDO_UID", default=0))).pw_name
-        for group_name in [g.gr_name for g in grp.getgrall() if self._current_user in g.gr_mem]:
-            if group_name == self.ARDUINO_GROUP:
-                self.was_in_arduino_group = True
-                break
-        else:
-            self.was_in_arduino_group = False
-
+        self.was_in_arduino_group = next(
+            (
+                True
+                for group_name in [
+                    g.gr_name
+                    for g in grp.getgrall()
+                    if self._current_user in g.gr_mem
+                ]
+                if group_name == self.ARDUINO_GROUP
+            ),
+            False,
+        )
         super().__init__(name="Arduino Legacy",
                          description=_("The Arduino Software Distribution"),
                          only_on_archs=['i386', 'amd64', 'armhf', 'arm64'],
@@ -152,7 +159,7 @@ class ArduinoLegacy(umake.frameworks.baseinstaller.BaseInstaller):
 
     def parse_download_link(self, line, in_download):
         """Parse Arduino download links (hardcoded)"""
-        url = "https://downloads.arduino.cc/arduino-1.8.19-linux{}.tar.xz".format(self.arch_trans[get_current_arch()])
+        url = f"https://downloads.arduino.cc/arduino-1.8.19-linux{self.arch_trans[get_current_arch()]}.tar.xz"
         return ((url, None), in_download)
 
     def post_install(self):
@@ -193,7 +200,7 @@ class Eagle(umake.frameworks.baseinstaller.BaseInstaller):
         if '.tar.gz' in line:
             p = re.search(r'href="([^<]*.tar.gz)"', line)
             with suppress(AttributeError):
-                url = p.group(1)
+                url = p[1]
         return ((url, None), in_download)
 
     def post_install(self):

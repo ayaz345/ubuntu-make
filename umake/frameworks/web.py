@@ -59,9 +59,9 @@ class FirefoxDev(umake.frameworks.baseinstaller.BaseInstaller):
     @MainLoop.in_mainloop_thread
     def language_select_callback(self, url):
         url = url.replace("&amp;", "&")
-        logger.debug("Found download link for {}".format(url))
+        logger.debug(f"Found download link for {url}")
         if self.dry_run:
-            UI.display(DisplayMessage("Found download URL: " + url))
+            UI.display(DisplayMessage(f"Found download URL: {url}"))
             UI.return_main_screen(status_code=0)
         self.download_requests.append(DownloadItem(url, None))
         self.start_download_and_install()
@@ -71,19 +71,19 @@ class FirefoxDev(umake.frameworks.baseinstaller.BaseInstaller):
         """Diverge from the baseinstaller implementation in order to allow language selection"""
 
         logger.debug("Parse download metadata")
-        error_msg = result[self.download_page].error
-        if error_msg:
-            logger.error("An error occurred while downloading {}: {}".format(self.download_page, error_msg))
+        if error_msg := result[self.download_page].error:
+            logger.error(
+                f"An error occurred while downloading {self.download_page}: {error_msg}"
+            )
             UI.return_main_screen(status_code=1)
 
         arch = platform.machine()
         arg_lang_url = None
         default_label = ''
-        tag_machine = ''
-        if arch == 'x86_64':
-            tag_machine = '64'
-
-        reg_expression = r'href="(\S+firefox-devedition\S+os=linux{}&amp;lang=\S+)"'.format(tag_machine)
+        tag_machine = '64' if arch == 'x86_64' else ''
+        reg_expression = (
+            f'href="(\S+firefox-devedition\S+os=linux{tag_machine}&amp;lang=\S+)"'
+        )
         languages = []
         decoded_page = result[self.download_page].buffer.getvalue().decode()
         for index, p in enumerate(re.finditer(reg_expression, decoded_page)):
@@ -92,7 +92,7 @@ class FirefoxDev(umake.frameworks.baseinstaller.BaseInstaller):
 
             m = re.search(r'lang=(.*)', url)
             with suppress(AttributeError):
-                lang = m.group(1)
+                lang = m[1]
 
             if self.arg_lang and self.arg_lang.lower() == lang.lower():
                 arg_lang_url = url
@@ -106,9 +106,9 @@ class FirefoxDev(umake.frameworks.baseinstaller.BaseInstaller):
                 languages.append(choice)
 
         if self.arg_lang:
-            logger.debug("Selecting {} lang".format(self.arg_lang))
+            logger.debug(f"Selecting {self.arg_lang} lang")
             if not arg_lang_url:
-                logger.error("Could not find a download url for language {}".format(self.arg_lang))
+                logger.error(f"Could not find a download url for language {self.arg_lang}")
                 UI.return_main_screen(status_code=1)
             self.language_select_callback(arg_lang_url)
         else:
@@ -116,7 +116,11 @@ class FirefoxDev(umake.frameworks.baseinstaller.BaseInstaller):
                 logger.error("Download page changed its syntax or is not parsable")
                 UI.return_main_screen(status_code=1)
             logger.debug("Check list of installable languages.")
-            UI.delayed_display(TextWithChoices(_("Choose language: {}".format(default_label)), languages, True))
+            UI.delayed_display(
+                TextWithChoices(
+                    _(f"Choose language: {default_label}"), languages, True
+                )
+            )
 
     def post_install(self):
         """Create the Firefox Developer launcher"""
@@ -160,17 +164,15 @@ class PhantomJS(umake.frameworks.baseinstaller.BaseInstaller):
     def parse_download_link(self, line, in_download):
         """Parse PhantomJS download link, expect to find a sha and a url"""
         url = None
-        string = 'linux-{}.tar.bz2">'.format(self.arch_trans[get_current_arch()])
+        string = f'linux-{self.arch_trans[get_current_arch()]}.tar.bz2">'
         if string in line:
             in_download = True
         if in_download is True:
             p = re.search(r'href="(.*)">', line)
             with suppress(AttributeError):
-                url = p.group(1)
+                url = p[1]
 
-        if url is None:
-            return (None, in_download)
-        return ((url, None), in_download)
+        return (None, in_download) if url is None else ((url, None), in_download)
 
     def post_install(self):
         """Add phantomjs necessary env variables"""
@@ -199,7 +201,9 @@ class Geckodriver(umake.frameworks.baseinstaller.BaseInstaller):
     def parse_download_link(self, line, in_download):
         url = None
         for asset in line["assets"]:
-            if asset["browser_download_url"].endswith("{}.tar.gz".format(self.arch_trans[get_current_arch()])):
+            if asset["browser_download_url"].endswith(
+                f"{self.arch_trans[get_current_arch()]}.tar.gz"
+            ):
                 in_download = True
                 url = asset["browser_download_url"]
         return (url, in_download)
@@ -224,7 +228,7 @@ class Chromedriver(umake.frameworks.baseinstaller.BaseInstaller):
         """Parse Chromedriver download links"""
         url = None
         with suppress(AttributeError):
-            url = "https://chromedriver.storage.googleapis.com/{}/chromedriver_linux64.zip".format(line)
+            url = f"https://chromedriver.storage.googleapis.com/{line}/chromedriver_linux64.zip"
         return ((url, None), in_download)
 
     def post_install(self):

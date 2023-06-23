@@ -75,7 +75,7 @@ class Decompressor:
 
         executor = futures.ThreadPoolExecutor(max_workers=3)
         for fd in orders:
-            logger.info("Requesting decompression to {}".format(orders[fd].dest))
+            logger.info(f"Requesting decompression to {orders[fd].dest}")
             future = executor.submit(self._decompress, fd, orders[fd].dir, orders[fd].dest)
             future.tag_fd = fd
             future.tag_dest = orders[fd].dest
@@ -85,7 +85,7 @@ class Decompressor:
         """decompress one entry
 
         dir can be a regexp"""
-        logger.debug("Extracting to {}".format(dest))
+        logger.debug(f"Extracting to {dest}")
         # we temporarily extract to this destination the archive content
         tempdest = tempfile.mktemp(dir=dest)
         # We don't use shutil to automatically select the right codec as we need to ensure that zipfile
@@ -119,12 +119,16 @@ class Decompressor:
             # error out if we had a valid archive which had an issue extracting
             if is_archive:
                 raise
-            name = "{}.safe".format(fd.name)
+            name = f"{fd.name}.safe"
             os.link(fd.name, name)
             fd.close()
             st = os.stat(name)
             os.chmod(name, st.st_mode | stat.S_IEXEC)
-            archive = subprocess.Popen([name, "-o{}".format(tempdest)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            archive = subprocess.Popen(
+                [name, f"-o{tempdest}"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
             archive.communicate()
             logger.debug("executable file")
             os.remove(name)
@@ -132,7 +136,7 @@ class Decompressor:
         try:
             dir_path = glob(os.path.join(tempdest, dir))[0]
         except IndexError:
-            raise BaseException("Couldn't find {} in tarball".format(dir))
+            raise BaseException(f"Couldn't find {dir} in tarball")
         for filename in os.listdir(dir_path):
             shutil.move(os.path.join(dir_path, filename), os.path.join(dest, filename))
         shutil.rmtree(tempdest)
@@ -145,11 +149,13 @@ class Decompressor:
 
         result = self.DecompressResult(error=None)
         if future.exception():
-            logger.error("A decompression to {} failed: {}".format(future.tag_dest, future.exception()),
-                         exc_info=future.exception())
+            logger.error(
+                f"A decompression to {future.tag_dest} failed: {future.exception()}",
+                exc_info=future.exception(),
+            )
             result = result._replace(error=str(future.exception()))
 
-        logger.info("Decompression to {} finished".format(future.tag_dest))
+        logger.info(f"Decompression to {future.tag_dest} finished")
         self._decompressed[future.tag_fd] = result
         if len(self._orders) == len(self._decompressed):
             self._done()
@@ -159,5 +165,7 @@ class Decompressor:
 
         uris of the temporary files will be passed on the wired callback
         """
-        logger.info("All pending decompression done to {} done.".format([self._orders[fd].dest for fd in self._orders]))
+        logger.info(
+            f"All pending decompression done to {[self._orders[fd].dest for fd in self._orders]} done."
+        )
         self._done_callback(self._decompressed)

@@ -27,9 +27,7 @@ class Uninstantiable(umake.frameworks.BaseFramework):
 
     def __new__(cls, *args, **kwargs):
         "This class is not meant to be instantiated, so __new__ returns None."
-        if cls == Uninstantiable:
-            return None
-        return super().__new__(cls)
+        return None if cls == Uninstantiable else super().__new__(cls)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -42,11 +42,7 @@ class TestRequirementsHandler(DpkgAptSetup):
 
     def count_number_progress_call(self, call_args_list, tag):
         """Count the number of tag in progress call and return it"""
-        count = 0
-        for call_item in call_args_list:
-            if call_item[0][0]['step'] == tag:
-                count += 1
-        return count
+        return sum(1 for call_item in call_args_list if call_item[0][0]['step'] == tag)
 
     def wait_for_callback(self, mock_function_to_be_called, timeout=10):
         """wait for the callback to be called until a timeout.
@@ -55,7 +51,7 @@ class TestRequirementsHandler(DpkgAptSetup):
         timeout_time = time() + timeout
         while not mock_function_to_be_called.called:
             if time() > timeout_time:
-                raise(BaseException("Function not called within {} seconds".format(timeout)))
+                raise BaseException(f"Function not called within {timeout} seconds")
 
     def test_singleton(self):
         """Ensure we are delivering a singleton for RequirementsHandler"""
@@ -73,7 +69,7 @@ class TestRequirementsHandler(DpkgAptSetup):
 
     def test_install_multi_arch_current_arch(self):
         """We install a multi_arch package corresponding to current arch"""
-        multi_arch_name = "testpackage:{}".format(tools.get_current_arch())
+        multi_arch_name = f"testpackage:{tools.get_current_arch()}"
         self.handler.install_bucket([multi_arch_name], lambda x: "", self.done_callback)
         self.wait_for_callback(self.done_callback)
 
@@ -126,11 +122,10 @@ class TestRequirementsHandler(DpkgAptSetup):
         self.assertIn(progress_callback.call_args_list[0][0][0],
                       [{'step': 0, 'pkg_size_download': 1, 'percentage': 0.0},
                        {'step': 0, 'pkg_size_download': 1698, 'percentage': 0.0}])
-        callfound = False
-        for call_item in progress_callback.call_args_list:
-            if call_item[0][0] == {'step': 1, 'percentage': 0.0}:
-                callfound = True
-                break
+        callfound = any(
+            call_item[0][0] == {'step': 1, 'percentage': 0.0}
+            for call_item in progress_callback.call_args_list
+        )
         self.assertTrue(callfound, "We expect to have one install step at 0% call in the list")
 
     def test_install_multiple_packages(self):
@@ -292,7 +287,11 @@ class TestRequirementsHandler(DpkgAptSetup):
         """Installed bucket should return True even if contains multi-arch part with current package"""
         self.handler.install_bucket(["testpackage"], lambda x: "", self.done_callback)
         self.wait_for_callback(self.done_callback)
-        self.assertTrue(self.handler.is_bucket_installed(["testpackage:{}".format(tools.get_current_arch())]))
+        self.assertTrue(
+            self.handler.is_bucket_installed(
+                [f"testpackage:{tools.get_current_arch()}"]
+            )
+        )
 
     def test_is_bucket_installed_with_unavailable_package(self):
         """Bucket isn't installed if some package are even not in the cache"""
@@ -329,7 +328,11 @@ class TestRequirementsHandler(DpkgAptSetup):
         """Installed bucket should return as being up-to-date even if contains multi-arch part with current package"""
         self.handler.install_bucket(["testpackage"], lambda x: "", self.done_callback)
         self.wait_for_callback(self.done_callback)
-        self.assertTrue(self.handler.is_bucket_uptodate(["testpackage:{}".format(tools.get_current_arch())]))
+        self.assertTrue(
+            self.handler.is_bucket_uptodate(
+                [f"testpackage:{tools.get_current_arch()}"]
+            )
+        )
 
     def test_is_bucket_uptodate_with_unavailable_package(self):
         """Bucket isn't up-to-date if some package are even not in the cache"""
@@ -368,7 +371,11 @@ class TestRequirementsHandler(DpkgAptSetup):
 
     def test_is_bucket_available_multi_arch_current_arch(self):
         """We return a package is available on the current platform"""
-        self.assertTrue(self.handler.is_bucket_available(['testpackage:{}'.format(tools.get_current_arch())]))
+        self.assertTrue(
+            self.handler.is_bucket_available(
+                [f'testpackage:{tools.get_current_arch()}']
+            )
+        )
 
     def test_unavailable_bucket(self):
         """An unavailable bucket on that platform is reported"""
@@ -406,9 +413,8 @@ class TestRequirementsHandler(DpkgAptSetup):
             nonlocal raise_returned
             if raise_returned:
                 return origin_open()
-            else:
-                raise_returned = True
-                raise SystemError
+            raise_returned = True
+            raise SystemError
 
         with patch.object(self.handler.cache, 'open', side_effect=cache_call) as openaptcache_mock:
             self.handler.install_bucket(["testpackage"], lambda x: "", self.done_callback)

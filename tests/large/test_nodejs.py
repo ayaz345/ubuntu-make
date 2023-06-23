@@ -48,14 +48,14 @@ class NodejsTests(LargeFrameworkTests):
             self.additional_dirs.append(self.example_prog_dir)
             example_file = os.path.join(self.example_prog_dir, "hello.js")
             open(example_file, "w").write(self.EXAMPLE_PROJECT)
-            compile_command = ["bash", "-l", "-c", "node {}".format(example_file)]
+            compile_command = ["bash", "-l", "-c", f"node {example_file}"]
             npm_command = ["bash", "-l", "-c", "npm config get prefix"]
         else:  # our mock expects getting that path
             compile_command = ["bash", "-l", "node /tmp/hello.js"]
             npm_command = ["bash", "-l", "npm config get prefix"]
 
-        self.child = spawn_process(self.command('{} nodejs'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} nodejs'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -69,11 +69,11 @@ class NodejsTests(LargeFrameworkTests):
 
         # compile a small project
         output = subprocess.check_output(self.command_as_list(compile_command)).decode()\
-            .replace('\r', '').replace('\n', '')
+                .replace('\r', '').replace('\n', '')
 
         # set npm prefix
         npm_output = subprocess.check_output(self.command_as_list(npm_command)).decode()\
-            .replace('\r', '').replace('\n', '')
+                .replace('\r', '').replace('\n', '')
 
         self.assertEqual(output, "Hello World")
         self.assertEqual(npm_output, "{}/.npm_modules".format(os.path.join("/",
@@ -83,7 +83,7 @@ class NodejsTests(LargeFrameworkTests):
     def test_lts_select_install(self):
         """Install nodejs lts"""
         self.child = spawn_process(self.command('{} nodejs --lts').format(UMAKE))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()

@@ -69,7 +69,7 @@ class FTPAdapter(BaseAdapter):
 
             def handle_transfer():
                 # Download all the chunks into a queue, then place a sentinel object into it to signal completion.
-                self.conn.retrbinary('RETR ' + file_path, queue.put)
+                self.conn.retrbinary(f'RETR {file_path}', queue.put)
                 queue.put(done_sentinel)
 
             Thread(target=handle_transfer).start()

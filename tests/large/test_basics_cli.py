@@ -81,11 +81,12 @@ class BasicCLI(LargeFrameworkTests):
 
     def test_setup_logging_level_with_env(self):
         """Set logging option to debug via env var"""
-        env = {"LOG_CFG": os.path.join(get_root_dir(), "confs", "info.logcfg")}
-        env.update(os.environ)
+        env = {
+            "LOG_CFG": os.path.join(get_root_dir(), "confs", "info.logcfg")
+        } | os.environ
         commands = [UMAKE]
         if self.in_container:
-            commands.insert(0, "LOG_CFG={}".format(env["LOG_CFG"]))
+            commands.insert(0, f'LOG_CFG={env["LOG_CFG"]}')
         result = subprocess.check_output(self.command_as_list(commands), env=env,
                                          stderr=subprocess.STDOUT)
         self.assertIn("Logging level set to INFO", result.decode("utf-8"))

@@ -58,12 +58,12 @@ class BaseCategory(umake.frameworks.BaseCategory):
         if in_download:
             p = re.search(r'href="(.*)"', line)
             with suppress(AttributeError):
-                url = p.group(1)
+                url = p[1]
             p = re.search(r'<td>(\w+)</td>', line)
             with suppress(AttributeError):
                 # ensure the size can match a md5 or sha1 checksum
-                if len(p.group(1)) > 15:
-                    md5sum = p.group(1)
+                if len(p[1]) > 15:
+                    md5sum = p[1]
             if "</tr>" in line:
                 in_download = False
 
@@ -109,12 +109,12 @@ class BaseFramework(umake.frameworks.baseinstaller.BaseInstaller):
         if in_download:
             p = re.search(r'href="(.*)"', line)
             with suppress(AttributeError):
-                url = p.group(1)
+                url = p[1]
             p = re.search(r'<td>(\w+)</td>', line)
             with suppress(AttributeError):
                 # ensure the size can match a md5 or sha1 checksum
-                if len(p.group(1)) > 15:
-                    md5sum = p.group(1)
+                if len(p[1]) > 15:
+                    md5sum = p[1]
             if "</tr>" in line:
                 in_download = False
 

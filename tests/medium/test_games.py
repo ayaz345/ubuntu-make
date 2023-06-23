@@ -83,7 +83,7 @@ class SuperpowersInContainer(ContainerTests, test_games.SuperpowersTests):
         """Installing Superpowers should fail if download page has significantly changed"""
         download_page_file_path = os.path.join(get_data_dir(), "server-content", "api.github.com",
                                                "repos", "superpowers", "superpowers-app", "releases", "latest")
-        umake_command = self.command('{} games superpowers'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} games superpowers')
         self.bad_download_page_test(self.command(self.command_args), download_page_file_path)
         self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))
         self.assertFalse(self.is_in_path(self.exec_link))
@@ -106,7 +106,7 @@ class GDevelopInContainer(ContainerTests, test_games.GDevelopTests):
         """Installing GDevelop should fail if download page has significantly changed"""
         download_page_file_path = os.path.join(get_data_dir(), "server-content", "api.github.com",
                                                "repos", "4ian", "GD", "releases", "latest")
-        umake_command = self.command('{} games gdevelop'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} games gdevelop')
         self.bad_download_page_test(self.command(self.command_args), download_page_file_path)
         self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))
         self.assertFalse(self.is_in_path(self.exec_link))
@@ -128,7 +128,7 @@ class GodotInContainer(ContainerTests, test_games.GodotTests):
         """Installing Godot should fail if download page has significantly changed"""
         download_page_file_path = os.path.join(get_data_dir(), "server-content", "godotengine.org",
                                                "download", "linux", "index.html")
-        umake_command = self.command('{} games godot'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} games godot')
         self.bad_download_page_test(self.command(self.command_args), download_page_file_path)
         self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))
         self.assertFalse(self.is_in_path(self.exec_link))

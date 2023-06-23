@@ -41,7 +41,7 @@ class TerraformInContainer(ContainerTests, test_devops.TerraformTests):
         """Installing Terraform should fail if download page has significantly changed"""
         download_page_file_path = os.path.join(get_data_dir(), "server-content", "api.github.com",
                                                "repos", "hashicorp", "terraform", "releases", "latest")
-        self.command('{} devops terraform'.format(UMAKE))
+        self.command(f'{UMAKE} devops terraform')
         self.bad_download_page_test(self.command(self.command_args), download_page_file_path)
         self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))
         self.assertFalse(self.is_in_path(self.exec_link))

@@ -42,8 +42,8 @@ class MavenTests(LargeFrameworkTests):
     def test_default_maven_install(self):
         """Install Maven from scratch test case"""
 
-        self.child = spawn_process(self.command('{} maven'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} maven'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()

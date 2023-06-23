@@ -58,24 +58,19 @@ def local_run(args):
     # matching our expectations.
     os.environ["LANGUAGE"] = "C"
 
-    pytest_args = []
-    # pytest captured logs format
-    pytest_args.extend(['--log-format="%(asctime)s [%(name)s] %(levelname)s: %(message)s"'])
-
+    pytest_args = [
+        '--log-format="%(asctime)s [%(name)s] %(levelname)s: %(message)s"'
+    ]
     # handle config first
     specified_config = False
     if args.debug:
         pytest_args.extend(["-s"])
         set_logging_profile(DEBUG_LOG_CONFIG)
-        specified_config = True
     elif args.coverage:
         pytest_args.extend(["--cov=umake", "--cov-report=term-missing", "--cov-report=html",
                             "--cov-report=xml", "--cov-config=confs/coverage.cov"])
         set_logging_profile(TESTING_LOG_CONFIG)
-        specified_config = True
-    else:
-        specified_config = True
-
+    specified_config = True
     if args.cache:
         pytest_args.extend(["--last-failed"])
 

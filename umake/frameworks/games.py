@@ -64,8 +64,12 @@ class Blender(umake.frameworks.baseinstaller.BaseInstaller):
         if 'linux-x64.tar.xz' in line:
             p = re.search(r'href=\"(https:\/\/www\.blender\.org\/.*linux-x64\.tar\.xz).?"', line)
             with suppress(AttributeError):
-                url = p.group(1)
-                filename = 'release' + re.search('blender-(.*)-linux', url).group(1).replace('.', '') + '.md5'
+                url = p[1]
+                filename = (
+                    'release'
+                    + re.search('blender-(.*)-linux', url)[1].replace('.', '')
+                    + '.md5'
+                )
                 self.checksum_url = os.path.join(os.path.dirname(url),
                                                  filename).replace('download', 'release').replace('www', 'download')
                 url = url.replace('www.blender.org/download', 'download.blender.org/release')
@@ -88,10 +92,10 @@ def _chrome_sandbox_setuid(path):
         try:
             os.chown(path, 0, -1)
             os.chmod(path, stat.S_ISUID | stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
-            logger.debug("Changed setUID mode {}".format(path))
+            logger.debug(f"Changed setUID mode {path}")
             return True
         except Exception as e:
-            logger.error("Couldn't change owner and file perm to {}: {}".format(path, e))
+            logger.error(f"Couldn't change owner and file perm to {path}: {e}")
             return False
 
 
@@ -126,7 +130,10 @@ class Twine(umake.frameworks.baseinstaller.BaseInstaller):
         """Parse Twine download links"""
         url = None
         for asset in line["assets"]:
-            if 'Linux-{}.zip'.format(self.arch_trans[get_current_arch()]) in asset["browser_download_url"]:
+            if (
+                f'Linux-{self.arch_trans[get_current_arch()]}.zip'
+                in asset["browser_download_url"]
+            ):
                 in_download = True
                 url = asset["browser_download_url"]
         return (url, in_download)
@@ -146,7 +153,7 @@ class Twine(umake.frameworks.baseinstaller.BaseInstaller):
         """Save correct Twine icon"""
         icon = download_result.pop(self.icon_url).fd.name
         shutil.copy(icon, os.path.join(self.install_path, self.icon_name))
-        logger.debug("Copied icon: {}".format(self.icon_url))
+        logger.debug(f"Copied icon: {self.icon_url}")
 
 
 class Superpowers(umake.frameworks.baseinstaller.BaseInstaller):
@@ -168,7 +175,10 @@ class Superpowers(umake.frameworks.baseinstaller.BaseInstaller):
     def parse_download_link(self, line, in_download):
         url = None
         for asset in line["assets"]:
-            if "linux-{}".format(self.arch_trans[get_current_arch()]) in asset["browser_download_url"]:
+            if (
+                f"linux-{self.arch_trans[get_current_arch()]}"
+                in asset["browser_download_url"]
+            ):
                 in_download = True
                 url = asset["browser_download_url"]
         return (url, in_download)
@@ -211,17 +221,15 @@ class Godot(umake.frameworks.baseinstaller.BaseInstaller):
     def parse_download_link(self, line, in_download):
         """Parse Godot download links"""
         url = None
-        if '{}.zip'.format(self.arch_trans[get_current_arch()]) in line:
+        if f'{self.arch_trans[get_current_arch()]}.zip' in line:
             in_download = True
             p = re.search(r'href=\"(.*\.zip)\"', line)
             with suppress(AttributeError):
-                url = p.group(1)
+                url = p[1]
                 bin = re.search(r'(Godot.*)\.zip', url)
-                self.required_files_path[0] = bin.group(1)
+                self.required_files_path[0] = bin[1]
 
-        if url is None:
-            return (None, in_download)
-        return ((url, None), in_download)
+        return (None, in_download) if url is None else ((url, None), in_download)
 
     def post_install(self):
         """Create the Godot launcher"""
@@ -244,4 +252,4 @@ class Godot(umake.frameworks.baseinstaller.BaseInstaller):
         """Save correct Godot icon"""
         icon = download_result.pop(self.icon_url).fd.name
         shutil.copy(icon, os.path.join(self.install_path, self.icon_filename))
-        logger.debug("Copied icon: {}".format(self.icon_url))
+        logger.debug(f"Copied icon: {self.icon_url}")

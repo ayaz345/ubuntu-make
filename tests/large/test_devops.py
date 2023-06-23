@@ -36,7 +36,7 @@ class TerraformTests(LargeFrameworkTests):
     def setUp(self):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "devops", "terraform")
-        self.command_args = '{} devops terraform'.format(UMAKE)
+        self.command_args = f'{UMAKE} devops terraform'
 
     @property
     def exec_path(self):
@@ -44,7 +44,7 @@ class TerraformTests(LargeFrameworkTests):
 
     def test_default_install(self):
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()

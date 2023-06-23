@@ -39,7 +39,7 @@ class DartInContainer(ContainerTests, test_dart.DartTests):
         download_page_file_path = os.path.join(get_data_dir(), "server-content",
                                                "storage.googleapis.com/dart-archive",
                                                "channels/stable/release/latest/VERSION")
-        umake_command = self.command('{} dart'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} dart')
         self.bad_download_page_test(umake_command, download_page_file_path)
         self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))
 
@@ -58,6 +58,6 @@ class FlutterInContainer(ContainerTests, test_dart.FlutterTests):
         download_page_file_path = os.path.join(get_data_dir(), "server-content",
                                                "storage.googleapis.com/flutter_infra",
                                                "releases/releases_linux.json")
-        umake_command = self.command('{} dart flutter-sdk'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} dart flutter-sdk')
         self.bad_download_page_test(umake_command, download_page_file_path)
         self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))

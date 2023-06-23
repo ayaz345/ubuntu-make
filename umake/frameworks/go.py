@@ -59,22 +59,20 @@ class GoLang(umake.frameworks.baseinstaller.BaseInstaller):
 
     def get_framework_arch(self):
         arch = get_current_arch()
-        if arch in self.arch_trans:
-            return self.arch_trans[arch]
-        return arch
+        return self.arch_trans[arch] if arch in self.arch_trans else arch
 
     def parse_download_link(self, line, in_download):
         """Parse Go download link, expect to find a sha and a url"""
         url, sha = (None, None)
-        if "linux-{}".format(self.get_framework_arch()) in line:
+        if f"linux-{self.get_framework_arch()}" in line:
             in_download = True
         if in_download:
             p = re.search(r'href="(.*)">', line)
             with suppress(AttributeError):
-                url = p.group(1)
+                url = p[1]
             p = re.search(r'<td><tt>(\w+)</tt></td>', line)
             with suppress(AttributeError):
-                sha = p.group(1)
+                sha = p[1]
             if "</tr>" in line:
                 in_download = False
 
@@ -84,7 +82,7 @@ class GoLang(umake.frameworks.baseinstaller.BaseInstaller):
         # The url representaion changes often,
         # add a custom check that the url is correct.
         if url is not None and not url.startswith("https://"):
-            url = "https://golang.org" + url
+            url = f"https://golang.org{url}"
 
         return ((url, sha), in_download)
 

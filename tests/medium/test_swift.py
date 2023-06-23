@@ -39,6 +39,6 @@ class SwiftInContainer(ContainerTests, test_swift.SwiftTests):
         """Installing swift ide should fail if download page has significantly changed"""
         download_page_file_path = os.path.join(get_data_dir(), "server-content", "swift.org", "download",
                                                "index.html")
-        umake_command = self.command('{} swift'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} swift')
         self.bad_download_page_test(umake_command, download_page_file_path)
         self.assertFalse(self.is_in_path(self.exec_path))

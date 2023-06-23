@@ -63,7 +63,7 @@ class LocalHttp:
         self.ssl_contexts = {}
         context_associated = False
         for hostname in self.use_ssl:
-            pem_file = os.path.join(get_data_dir(), "{}.pem".format(hostname))
+            pem_file = os.path.join(get_data_dir(), f"{hostname}.pem")
             if os.path.isfile(pem_file):
                 context = ssl.SSLContext(ssl.PROTOCOL_TLS)
                 context.load_cert_chain(pem_file)
@@ -78,26 +78,26 @@ class LocalHttp:
 
     def _match_sni_context(self, ssl_sock, server_name, initial_context):
         """return matching certificates to the current request"""
-        logger.info("Request on {}".format(server_name))
+        logger.info(f"Request on {server_name}")
         try:
             ssl_sock.context = self.ssl_contexts[server_name]
         except KeyError:
-            logger.warning("Didn't find corresponding context on this server for {}, keeping default"
-                           .format(server_name))
+            logger.warning(
+                f"Didn't find corresponding context on this server for {server_name}, keeping default"
+            )
 
     def _serve(self):
-        logger.info("Serving locally from {} on {}".format(self.path, self.get_address()))
+        logger.info(f"Serving locally from {self.path} on {self.get_address()}")
         self.httpd.serve_forever()
 
     def get_address(self, localhost=False):
         """Get public address"""
         server_name = 'localhost' if localhost else self.httpd.server_name
-        return "http{}://{}:{}".format("s" if self.use_ssl else "",
-                                       server_name, self.port)
+        return f'http{"s" if self.use_ssl else ""}://{server_name}:{self.port}'
 
     def stop(self):
         """Stop local server"""
-        logger.info("Stopping serving on {}".format(self.port))
+        logger.info(f"Stopping serving on {self.port}")
         self.httpd.shutdown()
         self.httpd.socket.close()
 
@@ -211,7 +211,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 self.send_response(302)
                 # We need to remove the query parameters, so we actually parse the URL.
                 parsed_url = urllib.parse.urlparse(self.path)
-                new_loc = 'ftp://' + RequestHandler.hostname + parsed_url.path
+                new_loc = f'ftp://{RequestHandler.hostname}{parsed_url.path}'
                 self.send_header('Location', new_loc)
                 self.end_headers()
                 return

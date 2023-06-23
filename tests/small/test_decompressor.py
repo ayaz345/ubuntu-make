@@ -55,7 +55,7 @@ class TestDecompressor(LoggedTestCase):
         timeout_time = time() + 5
         while not mock_function_to_be_called.called:
             if time() > timeout_time:
-                raise(BaseException("Function not called within {} seconds".format(timeout)))
+                raise BaseException(f"Function not called within {timeout} seconds")
 
     def test_decompress(self):
         """We decompress a valid .tgz file successfully"""

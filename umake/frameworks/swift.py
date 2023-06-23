@@ -59,14 +59,12 @@ class SwiftLang(umake.frameworks.baseinstaller.BaseInstaller):
     def parse_download_link(self, line, in_download):
         """Parse Swift download link, expect to find a .sig file"""
         sig_url = None
-        in_download = False
-        if '.tar.gz.sig' in line:
-            in_download = True
+        in_download = '.tar.gz.sig' in line
         if in_download:
             p = re.search(r'href="(.*)" title="PGP Signature"', line)
             with suppress(AttributeError):
-                sig_url = "https://swift.org" + p.group(1)
-                logger.debug("Found signature link: {}".format(sig_url))
+                sig_url = f"https://swift.org{p[1]}"
+                logger.debug(f"Found signature link: {sig_url}")
         return (sig_url, in_download)
 
     @MainLoop.in_mainloop_thread
@@ -74,9 +72,10 @@ class SwiftLang(umake.frameworks.baseinstaller.BaseInstaller):
         """Download files to download + license and check it"""
         logger.debug("Parse download metadata")
 
-        error_msg = result[self.download_page].error
-        if error_msg:
-            logger.error("An error occurred while downloading {}: {}".format(self.download_page, error_msg))
+        if error_msg := result[self.download_page].error:
+            logger.error(
+                f"An error occurred while downloading {self.download_page}: {error_msg}"
+            )
             UI.return_main_screen(status_code=1)
         in_download = False
         sig_url = None
@@ -86,14 +85,14 @@ class SwiftLang(umake.frameworks.baseinstaller.BaseInstaller):
             if str(new_sig_url) > str(sig_url):
                 # Avoid fetching development snapshots
                 if 'DEVELOPMENT-SNAPSHOT' not in new_sig_url:
-                    tmp_release = re.search("ubuntu(.....).tar", new_sig_url).group(1)
+                    tmp_release = re.search("ubuntu(.....).tar", new_sig_url)[1]
                     if tmp_release <= get_current_distro_version():
                         sig_url = new_sig_url
         if not sig_url:
             logger.error("Download page changed its syntax or is not parsable")
             UI.return_main_screen(status_code=1)
         if self.dry_run:
-            UI.display(DisplayMessage("Found download URL: " + sig_url))
+            UI.display(DisplayMessage(f"Found download URL: {sig_url}"))
             UI.return_main_screen(status_code=0)
         DownloadCenter(urls=[DownloadItem(sig_url, None), DownloadItem(self.asc_url, None)],
                        on_done=self.check_gpg_and_start_download, download=False)
@@ -128,7 +127,7 @@ class SwiftLang(umake.frameworks.baseinstaller.BaseInstaller):
         if url is None:
             logger.error("Download page changed its syntax or is not parsable (missing url)")
             UI.return_main_screen(status_code=1)
-        logger.debug("Found download link for {}".format(url))
+        logger.debug(f"Found download link for {url}")
         self.download_requests.append(DownloadItem(url, None))
         self.start_download_and_install()
 

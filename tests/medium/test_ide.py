@@ -346,7 +346,7 @@ class NetBeansInContainer(ContainerTests, test_ide.NetBeansTests):
         """Installing NetBeans ide should fail if download page has significantly changed"""
         download_page_file_path = os.path.join(get_data_dir(), "server-content", "www.apache.org", "dist",
                                                "incubator", "netbeans", "incubating-netbeans", "index.html")
-        umake_command = self.command('{} ide netbeans'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} ide netbeans')
         self.bad_download_page_test(umake_command, download_page_file_path)
         self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))
         self.assertFalse(self.is_in_path(self.exec_link))
@@ -383,7 +383,7 @@ class LightTableInContainer(ContainerTests, test_ide.LightTableTests):
         """Installing LightTable should fail if download page has significantly changed"""
         download_page_file_path = os.path.join(get_data_dir(), "server-content", "api.github.com",
                                                "repos", "LightTable", "LightTable", "releases", "latest")
-        umake_command = self.command('{} ide lighttable'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} ide lighttable')
         self.bad_download_page_test(self.command(self.command_args), download_page_file_path)
         self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))
         self.assertFalse(self.is_in_path(self.exec_link))
@@ -416,7 +416,7 @@ class DBeaverInContainer(ContainerTests, test_ide.DBeaverTests):
         """Installing DBeaver should fail if download page has significantly changed"""
         download_page_file_path = os.path.join(get_data_dir(), "server-content", "api.github.com",
                                                "repos", "DBeaver", "DBeaver", "releases", "latest")
-        umake_command = self.command('{} ide dbeaver'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} ide dbeaver')
         self.bad_download_page_test(self.command(self.command_args), download_page_file_path)
         self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))
         self.assertFalse(self.is_in_path(self.exec_link))
@@ -451,7 +451,7 @@ class SpringToolsSuiteInContainer(ContainerTests, test_ide.SpringToolsSuiteTests
     def test_install_with_changed_download_page(self):
         """Installing STS should fail if download page has significantly changed"""
         download_page_file_path = os.path.join(get_data_dir(), "server-content", "spring.io", "tools")
-        umake_command = self.command('{} ide spring-tools-suite'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} ide spring-tools-suite')
         self.bad_download_page_test(self.command(self.command_args), download_page_file_path)
         self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))
         self.assertFalse(self.is_in_path(self.exec_link))
@@ -483,7 +483,7 @@ class ProcessingInContainer(ContainerTests, test_ide.ProcessingTests):
         """Installing Processing should fail if download page has significantly changed"""
         download_page_file_path = os.path.join(get_data_dir(), "server-content", "api.github.com",
                                                "repos", "processing", "processing", "releases", "latest")
-        umake_command = self.command('{} ide processing'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} ide processing')
         self.bad_download_page_test(self.command(self.command_args), download_page_file_path)
         self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))
         self.assertFalse(self.is_in_path(self.exec_link))
@@ -506,7 +506,7 @@ class LiteIDEInContainer(ContainerTests, test_ide.LiteIDETests):
         """Installing LiteIDE should fail if download page has significantly changed"""
         download_page_file_path = os.path.join(get_data_dir(), "server-content", "api.github.com",
                                                "repos", "visualfc", "liteide", "releases", "latest")
-        umake_command = self.command('{} ide liteide'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} ide liteide')
         self.bad_download_page_test(self.command(self.command_args), download_page_file_path)
         self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))
         self.assertFalse(self.is_in_path(self.exec_link))
@@ -529,7 +529,7 @@ class VSCodiumInContainer(ContainerTests, test_ide.VSCodiumTests):
         """Installing VSCodium should fail if download page has significantly changed"""
         download_page_file_path = os.path.join(get_data_dir(), "server-content", "api.github.com",
                                                "repos", "VSCodium", "VSCodium", "releases", "latest")
-        umake_command = self.command('{} ide vscodium'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} ide vscodium')
         self.bad_download_page_test(self.command(self.command_args), download_page_file_path)
         self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))
         self.assertFalse(self.is_in_path(self.exec_link))

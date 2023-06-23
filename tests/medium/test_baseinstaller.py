@@ -48,8 +48,8 @@ class BaseInstallerInContainer(ContainerTests, test_baseinstaller.BaseInstallerT
             with open(self.download_page_file_path, "w") as newfile:
                 newfile.write(content.replace('id="linux-bundle', ""))
             # umake download page can't match any version (LATESTRELEASE)
-            self.child = spawn_process(self.command('{} base base-framework'.format(UMAKE)))
-            self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+            self.child = spawn_process(self.command(f'{UMAKE} base base-framework'))
+            self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
             self.child.sendline("")
             self.expect_and_no_warn(r"To get the latest version",
                                     timeout=self.TIMEOUT_INSTALL_PROGRESS, expect_warn=True)
@@ -69,8 +69,8 @@ class BaseInstallerInContainer(ContainerTests, test_baseinstaller.BaseInstallerT
                     version = subprocess.check_output(self.command_as_list([UMAKE, '--version']),
                                                       stderr=subprocess.STDOUT).decode("utf-8")
                     newfile.write(content.replace('LATESTRELEASE', version.strip().split("+")[0]))
-                self.child = spawn_process(self.command('{} base base-framework'.format(UMAKE)))
-                self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+                self.child = spawn_process(self.command(f'{UMAKE} base base-framework'))
+                self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
                 self.child.sendline("")
                 self.wait_and_close(exit_status=1, expect_warn=True)
                 self.assertIn("Download page changed its syntax or is not parsable (url missing)",
@@ -88,8 +88,8 @@ class BaseInstallerInContainer(ContainerTests, test_baseinstaller.BaseInstallerT
             with swap_file_and_restore(self.umake_download_page):
                 os.remove(self.umake_download_page)
 
-                self.child = spawn_process(self.command('{} base base-framework'.format(UMAKE)))
-                self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+                self.child = spawn_process(self.command(f'{UMAKE} base base-framework'))
+                self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
                 self.child.sendline("")
                 self.wait_and_close(exit_status=1, expect_warn=True)
                 self.assertIn("\r\nERROR: 404 Client Error:", self.child.before)
@@ -100,15 +100,3 @@ class BaseInstallerInContainer(ContainerTests, test_baseinstaller.BaseInstallerT
     def test_install_wrong_download_link_github_missing(self):
         # TODO: cut all network connection on the container to enable that test
         return
-        with swap_file_and_restore(self.download_page_file_path) as content:
-            with open(self.download_page_file_path, "w") as newfile:
-                newfile.write(content.replace('id="linux-bundle', ""))
-            self.child = spawn_process(self.command('{} base base-framework'.format(UMAKE)))
-            self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
-            self.child.sendline("")
-            self.expect_and_no_warn(r"\r\nERROR: Connection Error\r\n",
-                                    timeout=self.TIMEOUT_INSTALL_PROGRESS, expect_warn=True)
-            self.wait_and_close(exit_status=1)
-
-            # we have nothing installed
-            self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))

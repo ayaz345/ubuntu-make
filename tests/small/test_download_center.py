@@ -99,7 +99,7 @@ class TestDownloadCenter(LoggedTestCase):
         """we deliver one successful download after being redirected"""
         filename = "simplefile"
         # We add a suffix to make the server redirect us.
-        url = self.build_server_address(filename + "-redirect")
+        url = self.build_server_address(f"{filename}-redirect")
         request = DownloadItem(url, None)
         DownloadCenter([request], self.callback)
         self.wait_for_callback(self.callback)
@@ -117,7 +117,7 @@ class TestDownloadCenter(LoggedTestCase):
     def test_header_download(self):
         """we deliver one successful download with some headers"""
         filename = "simplefile"
-        url = self.build_server_address(filename + '-headers?header=test')
+        url = self.build_server_address(f'{filename}-headers?header=test')
         request = DownloadItem(url, headers={"header": "test"})
         DownloadCenter([request], self.callback)
         self.wait_for_callback(self.callback)
@@ -153,10 +153,10 @@ class TestDownloadCenter(LoggedTestCase):
 
         # Use an existing .gz file, at data/server-content/www.eclipse.org/.../eclipse-standard-luna-R-linux-gtk.tar.gz
         filename = "www.eclipse.org/technology/epp/downloads/release/version/"\
-                   "point_release/eclipse-java-linux-gtk.tar.gz"
+                       "point_release/eclipse-java-linux-gtk.tar.gz"
         length = 10240
         compressed_length = 266
-        url = self.build_server_address(filename + '-setheaders?content-encoding=gzip')
+        url = self.build_server_address(f'{filename}-setheaders?content-encoding=gzip')
         request = DownloadItem(url)
         DownloadCenter([request], self.callback, download=False)
         self.wait_for_callback(self.callback)
@@ -549,7 +549,9 @@ class TestDownloadCenterSecure(LoggedTestCase):
         """we deliver one successful download after being redirected"""
         filename = "simplefile"
         # We add a suffix to make the server redirect us.
-        url = TestDownloadCenter.build_server_address(self, filename + "-redirect", localhost=True)
+        url = TestDownloadCenter.build_server_address(
+            self, f"{filename}-redirect", localhost=True
+        )
         request = DownloadItem(url, None)
         os.environ['REQUESTS_CA_BUNDLE'] = join(get_data_dir(), 'localhost.pem')
         # Disable SubjectAltNameWarning for custom localhost test certificate
@@ -579,11 +581,10 @@ class TestDownloadCenterSecure(LoggedTestCase):
         TestDownloadCenter.wait_for_callback(self, self.callback)
 
         result = self.callback.call_args[0][0][url]
-        # disco python changed the error type
-        found = False
-        for invalidError in ["CERTIFICATE_VERIFY_FAILED", "bad handshake"]:
-            if invalidError in result.error:
-                found = True
+        found = any(
+            invalidError in result.error
+            for invalidError in ["CERTIFICATE_VERIFY_FAILED", "bad handshake"]
+        )
         self.assertTrue(found)
         self.assertIsNone(result.buffer)
         self.assertIsNone(result.fd)

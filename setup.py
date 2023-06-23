@@ -42,9 +42,7 @@ def get_requirements(tag_to_detect=""):
     with open("requirements.txt") as f:
         for line in f.read().splitlines():
             if line.startswith("#") or line == "":
-                tag_detected = False
-                if line.startswith(tag_to_detect):
-                    tag_detected = True
+                tag_detected = bool(line.startswith(tag_to_detect))
                 continue
             if tag_detected:
                 requirements.append(line)
@@ -79,17 +77,17 @@ class build_trans(cmd.Command):
             lang = filename[:-3]
             src = os.path.join(PO_DIR, filename)
             dest_path = os.path.join('build', 'locale', lang, 'LC_MESSAGES')
-            dest = os.path.join(dest_path, I18N_DOMAIN + '.mo')
+            dest = os.path.join(dest_path, f'{I18N_DOMAIN}.mo')
             if not os.path.exists(dest_path):
                 os.makedirs(dest_path)
             if not os.path.exists(dest):
-                print('Compiling {}'.format(src))
+                print(f'Compiling {src}')
                 subprocess.call(["msgfmt", src, "--output-file", dest])
             else:
                 src_mtime = os.stat(src)[8]
                 dest_mtime = os.stat(dest)[8]
                 if src_mtime > dest_mtime:
-                    print('Compiling {}'.format(src))
+                    print(f'Compiling {src}')
                     subprocess.call(["msgfmt", src, "--output-file", dest])
 
 
@@ -101,7 +99,9 @@ class install_data(_install_data):
                 continue
             lang = filename[:-3]
             lang_dir = os.path.join('share', 'locale', lang, 'LC_MESSAGES')
-            lang_file = os.path.join('build', 'locale', lang, 'LC_MESSAGES', I18N_DOMAIN + '.mo')
+            lang_file = os.path.join(
+                'build', 'locale', lang, 'LC_MESSAGES', f'{I18N_DOMAIN}.mo'
+            )
             self.data_files.append((lang_dir, [lang_file]))
         _install_data.run(self)
 
@@ -117,8 +117,15 @@ class update_pot(cmd.Command):
         pass
 
     def run(self):
-        cmd = ['xgettext', '--language=Python', '--keyword=_', '--package-name', I18N_DOMAIN,
-               '--output', 'po/{}.pot'.format(I18N_DOMAIN)]
+        cmd = [
+            'xgettext',
+            '--language=Python',
+            '--keyword=_',
+            '--package-name',
+            I18N_DOMAIN,
+            '--output',
+            f'po/{I18N_DOMAIN}.pot',
+        ]
         for path, names, filenames in os.walk(os.path.join(os.curdir, 'umake')):
             for f in filenames:
                 if f.endswith('.py'):
@@ -137,7 +144,7 @@ class update_po(cmd.Command):
         pass
 
     def run(self):
-        source_pot = os.path.join(os.curdir, 'po', '{}.pot'.format(I18N_DOMAIN))
+        source_pot = os.path.join(os.curdir, 'po', f'{I18N_DOMAIN}.pot')
         for po_file in glob(os.path.join(os.curdir, 'po', '*.po')):
             subprocess.check_call(["msgmerge", "-U", po_file, source_pot])
 

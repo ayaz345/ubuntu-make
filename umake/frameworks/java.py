@@ -71,31 +71,31 @@ class AdoptOpenJDK(umake.frameworks.baseinstaller.BaseInstaller):
 
         logger.debug("Set the version in the download url")
 
-        error_msg = result[self.download_page].error
-        if error_msg:
-            logger.error("An error occurred while downloading {}: {}".format(self.download_page, error_msg))
+        if error_msg := result[self.download_page].error:
+            logger.error(
+                f"An error occurred while downloading {self.download_page}: {error_msg}"
+            )
             UI.return_main_screen(status_code=1)
 
         for line in result[self.download_page].buffer:
             line_content = line.decode()
             with suppress(AttributeError, IndexError):
                 if self.lts and "most_recent_lts" in line_content:
-                    version = re.search(r': (.*),', line_content).group(1)
+                    version = re.search(r': (.*),', line_content)[1]
                 elif not self.lts:
                     if "most_recent_feature_release" in line_content:
-                        version = re.search(r': (.*),', line_content).group(1)
+                        version = re.search(r': (.*),', line_content)[1]
                     elif line_content.strip()[0].isdigit():
-                        version_prev = re.search(r'(.*),', line_content.strip()).group(1)
+                        version_prev = re.search(r'(.*),', line_content.strip())[1]
 
         if not result:
             logger.error("Download page changed its syntax or is not parsable")
             UI.return_main_screen(status_code=1)
 
-        self.download_page = "https://api.adoptopenjdk.net/v3/assets/latest/{}/{}".format(version, self.jvm_impl)
+        self.download_page = f"https://api.adoptopenjdk.net/v3/assets/latest/{version}/{self.jvm_impl}"
         # Check download page, or revert to previous version
         if requests.get(self.download_page).json() == []:
-            self.download_page = "https://api.adoptopenjdk.net/v3/assets/latest/{}/{}".format(version_prev,
-                                                                                              self.jvm_impl)
+            self.download_page = f"https://api.adoptopenjdk.net/v3/assets/latest/{version_prev}/{self.jvm_impl}"
         DownloadCenter([DownloadItem(self.download_page)], self.get_metadata_and_check_license, download=False)
 
     def parse_download_link(self, line, in_download):
@@ -156,10 +156,9 @@ class OpenJFX(umake.frameworks.baseinstaller.BaseInstaller):
         version = None
         for item in json.loads(line):
             if "release-notes" in item["name"]:
-                version = re.search(r'release-notes-(.*).md', item["name"]).group(1)
+                version = re.search(r'release-notes-(.*).md', item["name"])[1]
         with suppress(AttributeError):
-            self.new_download_url = \
-                "https://download2.gluonhq.com/openjfx/{}/openjfx-{}_linux-x64_bin-sdk.zip.sha256".format(version, version)
+            self.new_download_url = f"https://download2.gluonhq.com/openjfx/{version}/openjfx-{version}_linux-x64_bin-sdk.zip.sha256"
         return (None, in_download)
 
     @MainLoop.in_mainloop_thread

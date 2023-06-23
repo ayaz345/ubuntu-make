@@ -52,12 +52,12 @@ class AdoptOpenJDK(LargeFrameworkTests):
             self.additional_dirs.append(self.example_prog_dir)
             example_file = os.path.join(self.example_prog_dir, "hello.java")
             open(example_file, "w").write(self.EXAMPLE_PROJECT)
-            compile_command = ["bash", "-l", "-c", "java --source 11 {}".format(example_file)]
+            compile_command = ["bash", "-l", "-c", f"java --source 11 {example_file}"]
         else:  # our mock expects getting that path
             compile_command = ["bash", "-l", "java --source 11 /tmp/hello.java"]
 
-        self.child = spawn_process(self.command('{} java'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} java'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -66,7 +66,7 @@ class AdoptOpenJDK(LargeFrameworkTests):
 
         # compile a small project
         output = subprocess.check_output(self.command_as_list(compile_command)).decode()\
-            .replace('\r', '').replace('\n', '')
+                .replace('\r', '').replace('\n', '')
 
         self.assertEqual(output, "hello, world")
 
@@ -79,12 +79,12 @@ class AdoptOpenJDK(LargeFrameworkTests):
             self.additional_dirs.append(self.example_prog_dir)
             example_file = os.path.join(self.example_prog_dir, "hello.java")
             open(example_file, "w").write(self.EXAMPLE_PROJECT)
-            compile_command = ["bash", "-l", "-c", "java --source 11 {}".format(example_file)]
+            compile_command = ["bash", "-l", "-c", f"java --source 11 {example_file}"]
         else:  # our mock expects getting that path
             compile_command = ["bash", "-l", "java --source 11 /tmp/hello.java"]
 
-        self.child = spawn_process(self.command('{} java --lts'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} java --lts'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -94,7 +94,7 @@ class AdoptOpenJDK(LargeFrameworkTests):
 
         # compile a small project
         output = subprocess.check_output(self.command_as_list(compile_command)).decode()\
-            .replace('\r', '').replace('\n', '')
+                .replace('\r', '').replace('\n', '')
 
         self.assertEqual(output, "hello, world")
 
@@ -107,12 +107,12 @@ class AdoptOpenJDK(LargeFrameworkTests):
             self.additional_dirs.append(self.example_prog_dir)
             example_file = os.path.join(self.example_prog_dir, "hello.java")
             open(example_file, "w").write(self.EXAMPLE_PROJECT)
-            compile_command = ["bash", "-l", "-c", "java --source 11 {}".format(example_file)]
+            compile_command = ["bash", "-l", "-c", f"java --source 11 {example_file}"]
         else:  # our mock expects getting that path
             compile_command = ["bash", "-l", "java --source 11 /tmp/hello.java"]
 
-        self.child = spawn_process(self.command('{} java --openj9'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} java --openj9'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -122,7 +122,7 @@ class AdoptOpenJDK(LargeFrameworkTests):
 
         # compile a small project
         output = subprocess.check_output(self.command_as_list(compile_command)).decode()\
-            .replace('\r', '').replace('\n', '')
+                .replace('\r', '').replace('\n', '')
 
         self.assertEqual(output, "hello, world")
 
@@ -135,12 +135,12 @@ class AdoptOpenJDK(LargeFrameworkTests):
             self.additional_dirs.append(self.example_prog_dir)
             example_file = os.path.join(self.example_prog_dir, "hello.java")
             open(example_file, "w").write(self.EXAMPLE_PROJECT)
-            compile_command = ["bash", "-l", "-c", "java --source 11 {}".format(example_file)]
+            compile_command = ["bash", "-l", "-c", f"java --source 11 {example_file}"]
         else:  # our mock expects getting that path
             compile_command = ["bash", "-l", "java --source 11 /tmp/hello.java"]
 
-        self.child = spawn_process(self.command('{} java --openj9 --lts'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} java --openj9 --lts'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -151,7 +151,7 @@ class AdoptOpenJDK(LargeFrameworkTests):
 
         # compile a small project
         output = subprocess.check_output(self.command_as_list(compile_command)).decode()\
-            .replace('\r', '').replace('\n', '')
+                .replace('\r', '').replace('\n', '')
 
         self.assertEqual(output, "hello, world")
 
@@ -172,8 +172,8 @@ class OpenJFXTests(LargeFrameworkTests):
 
     def test_default_java_install(self):
         """Install OpenJXF from scratch test case"""
-        self.child = spawn_process(self.command('{} java'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} java'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()

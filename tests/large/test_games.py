@@ -40,8 +40,8 @@ class BlenderTests(LargeFrameworkTests):
 
     def test_default_blender_install(self):
         """Install blender from scratch test case"""
-        self.child = spawn_process(self.command('{} games blender'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} games blender'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -52,10 +52,7 @@ class BlenderTests(LargeFrameworkTests):
         self.assert_icon_exists()
         self.assert_exec_link_exists()
 
-        # launch it, send SIGTERM and check that it exits fine
-        use_cwd = self.installed_path
-        if self.in_container:
-            use_cwd = None
+        use_cwd = None if self.in_container else self.installed_path
         proc = subprocess.Popen(self.command_as_list(self.exec_path), stdout=subprocess.DEVNULL,
                                 stderr=subprocess.DEVNULL, cwd=use_cwd)
         self.check_and_kill_process([self.exec_path], wait_before=self.TIMEOUT_START)
@@ -63,7 +60,7 @@ class BlenderTests(LargeFrameworkTests):
         proc.wait(self.TIMEOUT_STOP)
 
         # ensure that it's detected as installed:
-        self.child = spawn_process(self.command('{} games blender'.format(UMAKE)))
+        self.child = spawn_process(self.command(f'{UMAKE} games blender'))
         self.expect_and_no_warn(r"Blender is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()
@@ -88,8 +85,8 @@ class Unity3DTests(LargeFrameworkTests):
         if platform.machine() != "x86_64":
             return
 
-        self.child = spawn_process(self.command('{} games unity3d'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} games unity3d'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -112,7 +109,7 @@ class Unity3DTests(LargeFrameworkTests):
         proc.wait(self.TIMEOUT_STOP)
 
         # ensure that it's detected as installed:
-        self.child = spawn_process(self.command('{} games unity3d'.format(UMAKE)))
+        self.child = spawn_process(self.command(f'{UMAKE} games unity3d'))
         self.expect_and_no_warn(r"Unity3d is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()
@@ -133,8 +130,8 @@ class TwineTests(LargeFrameworkTests):
     def test_default_twine_install(self):
         """Install twine editor from scratch test case"""
 
-        self.child = spawn_process(self.command('{} games twine'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} games twine'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -153,7 +150,7 @@ class TwineTests(LargeFrameworkTests):
         proc.wait(self.TIMEOUT_STOP)
 
         # ensure that it's detected as installed:
-        self.child = spawn_process(self.command('{} games twine'.format(UMAKE)))
+        self.child = spawn_process(self.command(f'{UMAKE} games twine'))
         self.expect_and_no_warn(r"Twine is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()
@@ -170,13 +167,13 @@ class SuperpowersTests(LargeFrameworkTests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "games", "superpowers")
         self.desktop_filename = "superpowers.desktop"
-        self.command_args = '{} games superpowers'.format(UMAKE)
+        self.command_args = f'{UMAKE} games superpowers'
 
     def test_default_superpowers_install(self):
         """Install Superpowers editor from scratch test case"""
 
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -212,13 +209,13 @@ class GDevelopTests(LargeFrameworkTests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "games", "gdevelop")
         self.desktop_filename = "gdevelop.desktop"
-        self.command_args = '{} games gdevelop'.format(UMAKE)
+        self.command_args = f'{UMAKE} games gdevelop'
 
     def test_default_gdevelop_install(self):
         """Install GDevelop editor from scratch test case"""
 
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -254,13 +251,13 @@ class GodotTests(LargeFrameworkTests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "games", "godot")
         self.desktop_filename = "godot.desktop"
-        self.command_args = '{} games godot'.format(UMAKE)
+        self.command_args = f'{UMAKE} games godot'
 
     def test_default_godot_install(self):
         """Install Godot editor from scratch test case"""
 
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()

@@ -25,22 +25,19 @@ import sys
 
 if __name__ == '__main__':
     version_file_path = os.path.join(os.path.dirname(__file__), "..", "..", "umake", "version")
-    version_tempfile_path = "{}.new".format(version_file_path)
+    version_tempfile_path = f"{version_file_path}.new"
 
     version = '{:%y.%m}'.format(datetime.datetime.now())
 
     old_version = open(version_file_path, 'r', encoding='utf-8').read().strip()
-    if old_version[0:5] == version:
-        minor = old_version[6:]
-        # need to bump to a minor version
-        if minor:
+    if old_version[:5] == version:
+        if minor := old_version[6:]:
             try:
                 minor = int(minor) + 1
-                version += ".{}".format(minor)
+                version += f".{minor}"
             except ValueError:
-                print("{} hasn't the expected format: YY.MM.<minor>".format(old_version))
+                print(f"{old_version} hasn't the expected format: YY.MM.<minor>")
                 sys.exit(1)
-        # there was no minor version, so add first one
         else:
             version += ".1"
 

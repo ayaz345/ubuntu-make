@@ -34,9 +34,9 @@ if __name__ == '__main__':
         in_depends_section = False
         depends = []
         with open("debian/control") as f:
-            for line in f.readlines():
+            for line in f:
                 line = line.rstrip()
-                if line == "Package: {}".format(args.binary):
+                if line == f"Package: {args.binary}":
                     in_binary_section = True
                 if not in_binary_section:
                     continue
@@ -46,12 +46,10 @@ if __name__ == '__main__':
                 elif line.startswith("Recommends: "):
                     line = line.replace("Recommends: ", "")
                     in_depends_section = True
-                else:
-                    # we are getting out of the depends or binary sections
-                    if not line:
-                        in_binary_section = False
-                    elif line[0] != " ":
-                        in_depends_section = False
+                elif not line:
+                    in_binary_section = False
+                elif line[0] != " ":
+                    in_depends_section = False
                 if not in_depends_section:
                     continue
                 line_deps = line.split(",")

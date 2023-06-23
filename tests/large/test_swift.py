@@ -49,13 +49,13 @@ class SwiftTests(LargeFrameworkTests):
             self.additional_dirs.append(self.example_prog_dir)
             example_file = os.path.join(self.example_prog_dir, "main.swift")
             open(example_file, "w").write(self.EXAMPLE_PROJECT)
-            compile_command = ["bash", "-l", "-c", "swift {}".format(example_file)]
+            compile_command = ["bash", "-l", "-c", f"swift {example_file}"]
         else:  # our mock expects getting that command parameter
             self.example_prog_dir = "/tmp"
             compile_command = ["bash", "-l", "swift /tmp/main.swift"]
 
-        self.child = spawn_process(self.command('{} swift'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} swift'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -65,6 +65,6 @@ class SwiftTests(LargeFrameworkTests):
 
         # run the compiled result
         output = subprocess.check_output(self.command_as_list(compile_command)).decode()\
-            .replace('\r', '').replace('\n', '')
+                .replace('\r', '').replace('\n', '')
 
         self.assertEqual(output, "Hello, world!")

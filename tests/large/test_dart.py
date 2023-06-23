@@ -41,8 +41,8 @@ class DartTests(LargeFrameworkTests):
 
     def test_default_dart_install(self):
         """Install dart editor from scratch test case"""
-        self.child = spawn_process(self.command('{} dart'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} dart'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -52,7 +52,7 @@ class DartTests(LargeFrameworkTests):
         self.assertTrue(self.is_in_path(self.exec_path))
 
         # ensure that it's detected as installed:
-        self.child = spawn_process(self.command('{} dart'.format(UMAKE)))
+        self.child = spawn_process(self.command(f'{UMAKE} dart'))
         self.expect_and_no_warn(r"Dart SDK is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()
@@ -73,8 +73,8 @@ class FlutterTests(LargeFrameworkTests):
 
     def test_default_dart_install(self):
         """Install dart editor from scratch test case"""
-        self.child = spawn_process(self.command('{} dart flutter-sdk'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} dart flutter-sdk'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -84,7 +84,7 @@ class FlutterTests(LargeFrameworkTests):
         self.assertTrue(self.is_in_path(self.exec_path))
 
         # ensure that it's detected as installed:
-        self.child = spawn_process(self.command('{} dart flutter-sdk'.format(UMAKE)))
+        self.child = spawn_process(self.command(f'{UMAKE} dart flutter-sdk'))
         self.expect_and_no_warn(r"Flutter SDK is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()

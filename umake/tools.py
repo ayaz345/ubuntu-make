@@ -70,10 +70,10 @@ class Singleton(type):
 
     _instances = {}
 
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+    def __call__(self, *args, **kwargs):
+        if self not in self._instances:
+            self._instances[self] = super(Singleton, self).__call__(*args, **kwargs)
+        return self._instances[self]
 
 
 class ConfigHandler(metaclass=Singleton):
@@ -87,14 +87,14 @@ class ConfigHandler(metaclass=Singleton):
             if not config_file:
                 config_file = old_config_file.replace(settings.OLD_CONFIG_FILENAME, settings.CONFIG_FILENAME)
             os.rename(old_config_file, config_file)
-        logger.debug("Opening {}".format(config_file))
+        logger.debug(f"Opening {config_file}")
         try:
             with open(config_file) as f:
                 self._config = yaml.safe_load(f)
         except (TypeError, FileNotFoundError):
             logger.info("No configuration file found")
         except (yaml.scanner.ScannerError, yaml.parser.ParserError) as e:
-            logger.error("Invalid configuration file found: {}".format(e))
+            logger.error(f"Invalid configuration file found: {e}")
 
     @property
     def config(self):
@@ -103,7 +103,7 @@ class ConfigHandler(metaclass=Singleton):
     @config.setter
     def config(self, config):
         config_file = os.path.join(xdg_config_home, settings.CONFIG_FILENAME)
-        logging.debug("Saving new configuration: {} in {}".format(config, config_file))
+        logging.debug(f"Saving new configuration: {config} in {config_file}")
         os.makedirs(os.path.dirname(config_file), exist_ok=True)
         with open(config_file, 'w') as f:
             yaml.dump(config, f, default_flow_style=False)
@@ -214,16 +214,14 @@ def add_foreign_arch(new_arch):
     # try to add the arch if not already present
     arch_added = False
     if new_arch not in get_foreign_archs() and new_arch != get_current_arch():
-        logger.info("Adding foreign arch: {}".format(new_arch))
+        logger.info(f"Adding foreign arch: {new_arch}")
         with open(os.devnull, "w") as f:
             with as_root():
                 if subprocess.call(["dpkg", "--add-architecture", new_arch], stdout=f) != 0:
                     msg = _("Can't add foreign architecture {}").format(new_arch)
                     raise BaseException(msg)
-    # mark the new arch as added and invalidate the cache
-    arch_added = True
     _foreign_arch = None
-    return arch_added
+    return True
 
 
 def get_current_distro_id():
@@ -237,7 +235,7 @@ def get_current_distro_id():
                         _id = line.split('=')[1]
                         break
         except (FileNotFoundError, IOError) as e:
-            message = "Can't open os-release file: {}".format(e)
+            message = f"Can't open os-release file: {e}"
             logger.error(message)
             raise BaseException(message)
     return _id
@@ -252,17 +250,17 @@ def get_current_distro_version(distro_name="ubuntu"):
                 for line in os_release_file:
                     line = line.strip()
                     if line.startswith('ID='):
-                        if line != "ID={}".format(distro_name):
+                        if line != f"ID={distro_name}":
                             break
                     if line.startswith('VERSION_ID='):
                         _version = line.split('=')[1].split('"')[1]
                         break
                 else:
-                    message = "Couldn't find DISTRIB_RELEASE in {}".format(settings.OS_RELEASE_FILE)
+                    message = f"Couldn't find DISTRIB_RELEASE in {settings.OS_RELEASE_FILE}"
                     logger.error(message)
                     raise BaseException(message)
         except (FileNotFoundError, IOError) as e:
-            message = "Can't open os-release file: {}".format(e)
+            message = f"Can't open os-release file: {e}"
             logger.error(message)
             raise BaseException(message)
     return _version
@@ -292,7 +290,7 @@ def launcher_exists(desktop_filename):
     """Return true if the desktop filename exists"""
     exists = os.path.exists(get_launcher_path(desktop_filename))
     if not exists:
-        logger.debug("{} doesn't exist".format(desktop_filename))
+        logger.debug(f"{desktop_filename} doesn't exist")
         return False
     return True
 
@@ -309,9 +307,9 @@ def launcher_exists_and_is_pinned(desktop_filename):
         return False
     gsettings = Gio.Settings(schema_id="com.canonical.Unity.Launcher", path="/com/canonical/unity/launcher/")
     launcher_list = gsettings.get_strv("favorites")
-    res = "application://" + desktop_filename in launcher_list
+    res = f"application://{desktop_filename}" in launcher_list
     if not res:
-        logger.debug("Launcher exists but is not pinned (pinned: {}).".format(launcher_list))
+        logger.debug(f"Launcher exists but is not pinned (pinned: {launcher_list}).")
     return res
 
 
@@ -322,7 +320,7 @@ def copy_icon(source_icon_filepath, icon_filename):
     icon_path = get_icon_path(icon_filename)
     os.makedirs(os.path.dirname(icon_path), exist_ok=True)
     for file_path in glob(source_icon_filepath):
-        logger.debug("Copy icon from {} to {}".format(file_path, icon_path))
+        logger.debug(f"Copy icon from {file_path} to {icon_path}")
         shutil.copy(file_path, icon_path)
         break
     else:
@@ -335,7 +333,7 @@ def create_launcher(desktop_filename, content):
     # Create file in standard location
     launcher_path = get_launcher_path(desktop_filename)
     os.makedirs(os.path.dirname(launcher_path), exist_ok=True)
-    logger.debug("Create launcher as {}".format(launcher_path))
+    logger.debug(f"Create launcher as {launcher_path}")
     with open(launcher_path, "w") as f:
         f.write(content)
 
@@ -344,7 +342,7 @@ def create_launcher(desktop_filename, content):
         return
     gsettings = Gio.Settings(schema_id="com.canonical.Unity.Launcher", path="/com/canonical/unity/launcher/")
     launcher_list = gsettings.get_strv("favorites")
-    launcher_tag = "application://{}".format(desktop_filename)
+    launcher_tag = f"application://{desktop_filename}"
     if launcher_tag not in launcher_list:
         index = len(launcher_list)
         with suppress(ValueError):
@@ -438,9 +436,9 @@ def remove_framework_envs_from_user(framework_tag):
         content = content[:framework_start_index] + content[framework_start_index + framework_end_index + len("\n\n"):]
 
     # rewrite .profile and omit framework_tag
-    with open(profile_filepath + ".new", "w", encoding='utf-8') as f:
+    with open(f"{profile_filepath}.new", "w", encoding='utf-8') as f:
         f.write(content)
-    os.rename(profile_filepath + ".new", profile_filepath)
+    os.rename(f"{profile_filepath}.new", profile_filepath)
 
 
 def add_env_to_user(framework_tag, env_dict):
@@ -462,7 +460,7 @@ def add_env_to_user(framework_tag, env_dict):
             value = os.pathsep.join(value)
         if env_dict[env].get("keep", True) and os.environ.get(env):
             os.environ[env] = value + os.pathsep + os.environ[env]
-            value = "{}{}${}".format(value, os.pathsep, env)
+            value = f"{value}{os.pathsep}${env}"
         else:
             os.environ[env] = value
         envs_to_insert[env] = value
@@ -471,9 +469,9 @@ def add_env_to_user(framework_tag, env_dict):
         f.write(profile_tag.format(framework_tag))
         for env in envs_to_insert:
             value = envs_to_insert[env]
-            logger.debug("Adding {} to user's {} for {}".format(value, env, framework_tag))
+            logger.debug(f"Adding {value} to user's {env} for {framework_tag}")
             export = ""
             if env != "PATH":
                 export = "export "
-            f.write("{}{}={}\n".format(export, env, value))
+            f.write(f"{export}{env}={value}\n")
         f.write("\n")

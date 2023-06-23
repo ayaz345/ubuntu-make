@@ -187,7 +187,7 @@ class TestCompletion(LoggedTestCase):
         # restore original environment. Do not use the dict copy which erases the object and doesn't have the magical
         # _Environ which setenv() for subprocess
         os.environ.clear()
-        os.environ.update(self.initial_env)
+        os.environ |= self.initial_env
         super().tearDown()
 
     def test_in_completion_mode(self):
@@ -875,7 +875,7 @@ class TestUserENV(LoggedTestCase):
         # restore original environment. Do not use the dict copy which erases the object and doesn't have the magical
         # _Environ which setenv() for subprocess
         os.environ.clear()
-        os.environ.update(self.orig_environ)
+        os.environ |= self.orig_environ
         super().tearDown()
 
     @patch("umake.tools.os.path.expanduser")

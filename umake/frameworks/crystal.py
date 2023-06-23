@@ -66,7 +66,10 @@ class CrystalLang(umake.frameworks.baseinstaller.BaseInstaller):
     def parse_download_link(self, line, in_download):
         url = None
         for asset in line["assets"]:
-            if "linux-{}.tar.gz".format(self.arch_trans[get_current_arch()]) in asset["browser_download_url"]:
+            if (
+                f"linux-{self.arch_trans[get_current_arch()]}.tar.gz"
+                in asset["browser_download_url"]
+            ):
                 in_download = True
                 url = asset["browser_download_url"]
         return (url, in_download)

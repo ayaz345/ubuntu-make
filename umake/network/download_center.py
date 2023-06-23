@@ -95,10 +95,10 @@ class DownloadCenter:
                 root_lock.acquire()
                 dest = tempfile.NamedTemporaryFile(suffix=ext)
                 root_lock.release()
-                logger.info("Start downloading {} to a temp file".format(url_request))
+                logger.info(f"Start downloading {url_request} to a temp file")
             else:
                 dest = BytesIO()
-                logger.info("Start downloading {} in memory".format(url_request))
+                logger.info(f"Start downloading {url_request} in memory")
             future = executor.submit(self._fetch, url_request, dest)
             future.tag_url = url_request.url
             future.tag_download = download
@@ -182,13 +182,15 @@ class DownloadCenter:
         """
 
         if future.exception():
-            logger.error("{} couldn't finish download: {}".format(future.tag_url, future.exception()))
+            logger.error(
+                f"{future.tag_url} couldn't finish download: {future.exception()}"
+            )
             result = self.DownloadResult(buffer=None, error=str(future.exception()), fd=None, final_url=None,
                                          cookies=None)
             # cleaned unusable temp file as something bad happened
             future.tag_dest.close()
         else:
-            logger.info("{} download finished".format(future.tag_url))
+            logger.info(f"{future.tag_url} download finished")
             fd, final_url, cookies = future.result()
             fd.seek(0)
             if future.tag_download:
@@ -204,17 +206,17 @@ class DownloadCenter:
 
         uris of the temporary files will be passed on the wired callback
         """
-        logger.info("All pending downloads for {} done".format(self._urls))
+        logger.info(f"All pending downloads for {self._urls} done")
         self._done_callback(self._downloaded_content)
 
     @classmethod
     def _checksum_for_fd(cls, algorithm, f, block_size=2 ** 20):
         checksum = algorithm()
         while True:
-            data = f.read(block_size)
-            if not data:
+            if data := f.read(block_size):
+                checksum.update(data)
+            else:
                 break
-            checksum.update(data)
         return checksum.hexdigest()
 
     @classmethod

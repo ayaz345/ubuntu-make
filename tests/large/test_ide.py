@@ -40,7 +40,7 @@ class EclipseJavaIDETests(LargeFrameworkTests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "eclipse")
         self.desktop_filename = "eclipse-java.desktop"
-        self.command_args = '{} ide eclipse'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide eclipse'
         self.name = "Eclipse"
 
     @property
@@ -51,7 +51,7 @@ class EclipseJavaIDETests(LargeFrameworkTests):
     def test_default_eclipse_ide_install(self):
         """Install eclipse from scratch test case"""
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -78,7 +78,7 @@ class EclipseJavaIDETests(LargeFrameworkTests):
 
         # ensure that it's detected as installed:
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"{} is already installed.*\[.*\] ".format(self.name))
+        self.expect_and_no_warn(f"{self.name} is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()
 
@@ -90,7 +90,7 @@ class EclipseJEEIDETests(EclipseJavaIDETests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "eclipse-jee")
         self.desktop_filename = "eclipse-jee.desktop"
-        self.command_args = '{} ide eclipse-jee'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide eclipse-jee'
         self.name = "Eclipse JEE"
 
 
@@ -101,7 +101,7 @@ class EclipsePHPIDETests(EclipseJavaIDETests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "eclipse-php")
         self.desktop_filename = "eclipse-php.desktop"
-        self.command_args = '{} ide eclipse-php'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide eclipse-php'
         self.name = "Eclipse PHP"
 
 
@@ -112,7 +112,7 @@ class EclipseCPPIDETests(EclipseJavaIDETests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "eclipse-cpp")
         self.desktop_filename = "eclipse-cpp.desktop"
-        self.command_args = '{} ide eclipse-cpp'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide eclipse-cpp'
         self.name = "Eclipse CPP"
 
 
@@ -127,13 +127,13 @@ class IdeaIDETests(LargeFrameworkTests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "idea")
         self.desktop_filename = 'jetbrains-idea-ce.desktop'
-        self.command_args = '{} ide idea'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide idea'
         self.name = 'Idea'
 
     def test_default_install(self):
         """Install from scratch test case"""
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         result = self.return_and_wait_expect(["ERROR: No Stable version available.",
                                               "Installation done"], timeout=self.TIMEOUT_INSTALL_PROGRESS)
@@ -156,7 +156,7 @@ class IdeaIDETests(LargeFrameworkTests):
 
             # ensure that it's detected as installed:
             self.child = spawn_process(self.command(self.command_args))
-            self.expect_and_no_warn(r"{} is already installed.*\[.*\] ".format(self.name))
+            self.expect_and_no_warn(f"{self.name} is already installed.*\[.*\] ")
             self.child.sendline()
             self.wait_and_close()
 
@@ -167,8 +167,12 @@ class IdeaIDETests(LargeFrameworkTests):
         self.name += ' EAP'
 
         self.child = spawn_process(self.command(self.command_args))
-        result = self.return_and_wait_expect([r"ERROR: No EAP version available.*\[.*\]",
-                                              r"Choose installation path: {}".format(self.installed_path)])
+        result = self.return_and_wait_expect(
+            [
+                r"ERROR: No EAP version available.*\[.*\]",
+                f"Choose installation path: {self.installed_path}",
+            ]
+        )
         if result == 1:
             self.child.sendline("")
             self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
@@ -190,7 +194,7 @@ class IdeaIDETests(LargeFrameworkTests):
 
             # ensure that it's detected as installed:
             self.child = spawn_process(self.command(self.command_args))
-            self.expect_and_no_warn(r"{} is already installed.*\[.*\] ".format(self.name))
+            self.expect_and_no_warn(f"{self.name} is already installed.*\[.*\] ")
             self.child.sendline()
             self.wait_and_close()
 
@@ -206,7 +210,7 @@ class IdeaUltimateIDETests(IdeaIDETests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "idea-ultimate")
         self.desktop_filename = 'jetbrains-idea.desktop'
-        self.command_args = '{} ide idea-ultimate'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide idea-ultimate'
         self.name = 'Idea Ultimate'
 
 
@@ -221,7 +225,7 @@ class PyCharmIDETests(IdeaIDETests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "pycharm")
         self.desktop_filename = 'jetbrains-pycharm-ce.desktop'
-        self.command_args = '{} ide pycharm'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide pycharm'
         self.name = 'PyCharm'
 
 
@@ -236,7 +240,7 @@ class PyCharmEducationalIDETests(IdeaIDETests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "pycharm-educational")
         self.desktop_filename = 'jetbrains-pycharm-edu.desktop'
-        self.command_args = '{} ide pycharm-educational'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide pycharm-educational'
         self.name = 'PyCharm Educational'
 
 
@@ -251,7 +255,7 @@ class PyCharmProfessionalIDETests(IdeaIDETests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "pycharm-professional")
         self.desktop_filename = 'jetbrains-pycharm.desktop'
-        self.command_args = '{} ide pycharm-professional'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide pycharm-professional'
         self.name = 'PyCharm Professional'
 
 
@@ -266,7 +270,7 @@ class RubyMineIDETests(IdeaIDETests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "rubymine")
         self.desktop_filename = 'jetbrains-rubymine.desktop'
-        self.command_args = '{} ide rubymine'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide rubymine'
         self.name = 'RubyMine'
 
 
@@ -281,7 +285,7 @@ class WebStormIDETests(IdeaIDETests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "webstorm")
         self.desktop_filename = 'jetbrains-webstorm.desktop'
-        self.command_args = '{} ide webstorm'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide webstorm'
         self.name = 'WebStorm'
 
 
@@ -296,7 +300,7 @@ class PhpStormIDETests(IdeaIDETests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "phpstorm")
         self.desktop_filename = 'jetbrains-phpstorm.desktop'
-        self.command_args = '{} ide phpstorm'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide phpstorm'
         self.name = 'PhpStorm'
 
 
@@ -311,7 +315,7 @@ class CLionIDETests(IdeaIDETests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "clion")
         self.desktop_filename = 'jetbrains-clion.desktop'
-        self.command_args = '{} ide clion'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide clion'
         self.name = 'CLion'
 
 
@@ -326,7 +330,7 @@ class DataGripIDETests(IdeaIDETests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "datagrip")
         self.desktop_filename = 'jetbrains-datagrip.desktop'
-        self.command_args = '{} ide datagrip'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide datagrip'
         self.name = 'DataGrip'
 
 
@@ -341,7 +345,7 @@ class GoLandIDETests(IdeaIDETests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "goland")
         self.desktop_filename = 'jetbrains-goland.desktop'
-        self.command_args = '{} ide goland'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide goland'
         self.name = 'GoLand'
 
 
@@ -356,7 +360,7 @@ class RiderIDETests(IdeaIDETests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "rider")
         self.desktop_filename = 'jetbrains-rider.desktop'
-        self.command_args = '{} ide rider'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide rider'
         self.name = 'Rider'
 
 
@@ -374,8 +378,8 @@ class NetBeansTests(LargeFrameworkTests):
 
     def test_default_install(self):
         """Install from scratch test case"""
-        self.child = spawn_process(self.command('{} ide netbeans'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} ide netbeans'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -397,7 +401,7 @@ class NetBeansTests(LargeFrameworkTests):
         proc.wait(self.TIMEOUT_STOP)
 
         # ensure that it's detected as installed:
-        self.child = spawn_process(self.command('{} ide netbeans'.format(UMAKE)))
+        self.child = spawn_process(self.command(f'{UMAKE} ide netbeans'))
         self.expect_and_no_warn(r"Netbeans is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()
@@ -414,14 +418,14 @@ class VisualStudioCodeTests(LargeFrameworkTests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "visual-studio-code")
         self.desktop_filename = "visual-studio-code.desktop"
-        self.command_args = '{} ide visual-studio-code'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide visual-studio-code'
         self.name = 'Visual Studio Code'
 
     def test_default_install(self):
         """Install visual studio from scratch test case"""
 
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"\[I Accept.*\]")  # ensure we have a license question
         self.child.sendline("a")
@@ -458,7 +462,7 @@ class VisualStudioCodeTests(LargeFrameworkTests):
         self.name += ' Insiders'
 
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"\[I Accept.*\]")  # ensure we have a license question
         self.child.sendline("a")
@@ -498,13 +502,13 @@ class LightTableTests(LargeFrameworkTests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "lighttable")
         self.desktop_filename = "lighttable.desktop"
-        self.command_args = '{} ide lighttable'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide lighttable'
 
     def test_default_install(self):
         """Install LightTable from scratch test case"""
 
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -542,7 +546,7 @@ class DBeaverTests(LargeFrameworkTests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "dbeaver")
         self.desktop_filename = "dbeaver.desktop"
-        self.command_args = '{} ide dbeaver'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide dbeaver'
         self.name = "DBeaver"
 
     @property
@@ -554,7 +558,7 @@ class DBeaverTests(LargeFrameworkTests):
         """Install DBeaver from scratch test case"""
 
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -581,7 +585,7 @@ class DBeaverTests(LargeFrameworkTests):
 
         # ensure that it's detected as installed:
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"{} is already installed.*\[.*\] ".format(self.name))
+        self.expect_and_no_warn(f"{self.name} is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()
 
@@ -597,7 +601,7 @@ class SpringToolsSuiteTests(LargeFrameworkTests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "spring-tools-suite")
         self.desktop_filename = "STS.desktop"
-        self.command_args = '{} ide spring-tools-suite'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide spring-tools-suite'
         self.name = 'Spring Tools Suite'
 
     @property
@@ -608,7 +612,7 @@ class SpringToolsSuiteTests(LargeFrameworkTests):
     def test_default_install(self):
         """Install STS from scratch test case"""
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -635,7 +639,7 @@ class SpringToolsSuiteTests(LargeFrameworkTests):
 
         # ensure that it's detected as installed:
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"{} is already installed.*\[.*\] ".format(self.name))
+        self.expect_and_no_warn(f"{self.name} is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()
 
@@ -651,13 +655,13 @@ class RStudioTests(LargeFrameworkTests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "rstudio")
         self.desktop_filename = "rstudio.desktop"
-        self.command_args = '{} ide rstudio'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide rstudio'
 
     def test_default_install(self):
         """Install Sublime Text from scratch test case"""
 
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -693,13 +697,13 @@ class SublimeTextTests(LargeFrameworkTests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "sublime-text")
         self.desktop_filename = "sublime-text.desktop"
-        self.command_args = '{} ide sublime-text'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide sublime-text'
 
     def test_default_install(self):
         """Install Sublime Text from scratch test case"""
 
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -735,7 +739,7 @@ class ProcessingTests(LargeFrameworkTests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "processing")
         self.desktop_filename = "processing.desktop"
-        self.command_args = '{} ide processing'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide processing'
 
     @property
     def arch_option(self):
@@ -746,7 +750,7 @@ class ProcessingTests(LargeFrameworkTests):
         """Install Processing from scratch test case"""
 
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -783,7 +787,7 @@ class LiteIDETests(LargeFrameworkTests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "liteide")
         self.desktop_filename = "liteide.desktop"
-        self.command_args = '{} ide liteide'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide liteide'
 
     @property
     def arch_option(self):
@@ -794,7 +798,7 @@ class LiteIDETests(LargeFrameworkTests):
         """Install LiteIDE from scratch test case"""
 
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -832,14 +836,14 @@ class VSCodiumTests(LargeFrameworkTests):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "ide", "vscodium")
         self.desktop_filename = "vscodium.desktop"
-        self.command_args = '{} ide vscodium'.format(UMAKE)
+        self.command_args = f'{UMAKE} ide vscodium'
         self.name = "VSCodium"
 
     def test_default_install(self):
         """Install VSCodium from scratch test case"""
 
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -861,6 +865,6 @@ class VSCodiumTests(LargeFrameworkTests):
 
         # ensure that it's detected as installed:
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"{} is already installed.*\[.*\] ".format(self.name))
+        self.expect_and_no_warn(f"{self.name} is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()

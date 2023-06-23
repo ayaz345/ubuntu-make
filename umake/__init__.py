@@ -41,7 +41,9 @@ try:
     locale.setlocale(locale.LC_ALL, '')
     gettext.textdomain("ubuntu-make")
 except locale.Error:
-    logger.debug("Couldn't load default locale {}, fallback to English".format(locale.LC_ALL))
+    logger.debug(
+        f"Couldn't load default locale {locale.LC_ALL}, fallback to English"
+    )
 
 _default_log_level = logging.WARNING
 _datadir = None
@@ -70,7 +72,9 @@ def _setup_logging(env_key='LOG_CFG', level=_default_log_level):
             with open(path, 'rt') as f:
                 config = yaml.load(f.read())
             logging.config.dictConfig(config)
-    logging.info("Logging level set to {}".format(logging.getLevelName(logging.root.getEffectiveLevel())))
+    logging.info(
+        f"Logging level set to {logging.getLevelName(logging.root.getEffectiveLevel())}"
+    )
 
 
 def set_logging_from_args(args, parser):
@@ -96,11 +100,10 @@ def set_logging_from_args(args, parser):
 
 def should_load_all_frameworks(args):
     """Set partial or complete framework loading condition based on arg"""
-    for arg in args[1:]:
-        if arg in ["-l", "--list", "--list-installed", "--list-available"]:
-            return True
-
-    return False
+    return any(
+        arg in ["-l", "--list", "--list-installed", "--list-available"]
+        for arg in args[1:]
+    )
 
 
 class _HelpAction(argparse._HelpAction):

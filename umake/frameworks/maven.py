@@ -62,7 +62,7 @@ class MavenLang(umake.frameworks.baseinstaller.BaseInstaller):
         if 'bin.tar.gz"' in line:
             p = re.search(r'href="(.+?-bin.tar.gz)"', line)
             with suppress(AttributeError):
-                url = p.group(1)
+                url = p[1]
                 in_download = True
         return ((url), in_download)
 
@@ -72,7 +72,7 @@ class MavenLang(umake.frameworks.baseinstaller.BaseInstaller):
         if 'bin.tar.gz.sha512' in line:
             p = re.search(r'href="(.+?-bin.tar.gz.sha512)"', line)
             with suppress(AttributeError):
-                self.new_download_url = p.group(1)
+                self.new_download_url = p[1]
         return ((None, None), in_download)
 
     @MainLoop.in_mainloop_thread

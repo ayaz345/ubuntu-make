@@ -64,15 +64,19 @@ class NodejsLang(umake.frameworks.baseinstaller.BaseInstaller):
         """Parse the download page and get the SHASUMS256.txt page"""
         logger.debug("Parse download metadata")
 
-        error_msg = result[self.download_page].error
-        if error_msg:
-            logger.error("An error occurred while downloading {}: {}".format(self.download_page, error_msg))
+        if error_msg := result[self.download_page].error:
+            logger.error(
+                f"An error occurred while downloading {self.download_page}: {error_msg}"
+            )
             UI.return_main_screen(status_code=1)
 
         for line in result[self.download_page].buffer:
             line_content = line.decode()
             with suppress(AttributeError):
-                shasum_url = re.search(r'a href=\"(https://nodejs\.org/dist/v[\d\.]+/SHASUMS\d\d\d\.txt\.asc)\"', line_content).group(1)
+                shasum_url = re.search(
+                    r'a href=\"(https://nodejs\.org/dist/v[\d\.]+/SHASUMS\d\d\d\.txt\.asc)\"',
+                    line_content,
+                )[1]
 
         if not result:
             logger.error("Download page changed its syntax or is not parsable")
@@ -85,7 +89,7 @@ class NodejsLang(umake.frameworks.baseinstaller.BaseInstaller):
         """Parse Nodejs download link, expect to find a sha1 and a url"""
         url, shasum = (None, None)
         arch = get_current_arch()
-        if "linux-{}.tar.xz".format(self.arch_trans[arch]) in line:
+        if f"linux-{self.arch_trans[arch]}.tar.xz" in line:
             in_download = True
         if in_download:
             url = self.download_page.strip("SHASUMS256.txt.asc") + line.split()[1].rstrip()
@@ -98,7 +102,7 @@ class NodejsLang(umake.frameworks.baseinstaller.BaseInstaller):
     def prefix_set(self):
         with suppress(IOError):
             with open(os.path.join(os.environ['HOME'], '.npmrc'), 'r') as file:
-                for line in file.readlines():
+                for line in file:
                     if line.startswith("prefix ="):
                         return True
         return False
@@ -124,5 +128,5 @@ class NodejsLang(umake.frameworks.baseinstaller.BaseInstaller):
         if args.lts:
             self.download_page = "https://nodejs.org/en/download/"
         if not args.remove:
-            print('Download from {}'.format(self.download_page))
+            print(f'Download from {self.download_page}')
         super().run_for(args)

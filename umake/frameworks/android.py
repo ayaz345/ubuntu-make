@@ -59,19 +59,19 @@ class AndroidCategory(umake.frameworks.BaseCategory):
         if in_download:
             p = re.search(regex, line)
             with suppress(AttributeError):
-                url = p.group(1)
+                url = p[1]
             p = re.search(r'<td>(\w+)</td>', line)
             with suppress(AttributeError):
                 # ensure the size can match a md5 or sha1 checksum
-                if len(p.group(1)) > 15:
-                    sha1sum = p.group(1)
+                if len(p[1]) > 15:
+                    sha1sum = p[1]
             if "</tr>" in line:
                 in_download = False
 
         if url is None and sha1sum is None:
             return (None, in_download)
         if url and url.startswith("//"):
-            url = "https:" + url
+            url = f"https:{url}"
         return ((url, sha1sum), in_download)
 
 
@@ -143,9 +143,11 @@ class AndroidSDK(umake.frameworks.baseinstaller.BaseInstaller):
         UI.delayed_display(DisplayMessage(self.RELOGIN_REQUIRE_MSG.format(self.name)))
 
         # print wiki page message
-        UI.delayed_display(DisplayMessage("SDK installed in {}. More information on how to use it on {}".format(
-                                          self.install_path,
-                                          "https://developer.android.com/sdk/installing/adding-packages.html")))
+        UI.delayed_display(
+            DisplayMessage(
+                f"SDK installed in {self.install_path}. More information on how to use it on https://developer.android.com/sdk/installing/adding-packages.html"
+            )
+        )
 
 
 class AndroidPlatformTools(umake.frameworks.baseinstaller.BaseInstaller):
@@ -203,9 +205,11 @@ class AndroidNDK(umake.frameworks.baseinstaller.BaseInstaller):
                                     "ANDROID_NDK_HOME": {"value": self.install_path, "keep": False}})
 
         # print wiki page message
-        UI.display(DisplayMessage("NDK installed in {}. More information on how to use it on {}".format(
-                                  self.install_path,
-                                  "https://developer.android.com/tools/sdk/ndk/index.html#GetStarted")))
+        UI.display(
+            DisplayMessage(
+                f"NDK installed in {self.install_path}. More information on how to use it on https://developer.android.com/tools/sdk/ndk/index.html#GetStarted"
+            )
+        )
 
 
 class EclipseADTForRemoval(umake.frameworks.baseinstaller.BaseInstaller):

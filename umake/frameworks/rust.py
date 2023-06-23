@@ -58,23 +58,37 @@ class RustLang(umake.frameworks.baseinstaller.BaseInstaller):
     def parse_download_link(self, line, in_download):
         """Parse Rust download link, expect to find a url"""
         url = None
-        if '{}-unknown-linux-gnu.tar.gz">'.format(self.arch_trans[get_current_arch()]) in line:
+        if (
+            f'{self.arch_trans[get_current_arch()]}-unknown-linux-gnu.tar.gz">'
+            in line
+        ):
             p = re.search(r'href="(\S+)">', line)
             with suppress(AttributeError):
-                url = p.group(1)
-                logger.debug("Found link: {}".format(url))
+                url = p[1]
+                logger.debug(f"Found link: {url}")
         return ((url, None), in_download)
 
     def post_install(self):
         """Add rust necessary env variables"""
-        add_env_to_user(self.name, {"PATH": {"value": "{}:{}:{}".format(os.path.join(self.install_path, "rustc", "bin"),
-                                                                        os.path.join(self.install_path, "cargo", "bin"),
-                                                                        "$HOME/.cargo/bin")}})
+        add_env_to_user(
+            self.name,
+            {
+                "PATH": {
+                    "value": f'{os.path.join(self.install_path, "rustc", "bin")}:{os.path.join(self.install_path, "cargo", "bin")}:$HOME/.cargo/bin'
+                }
+            },
+        )
 
         # adjust for rust: some symlinks magic to have stdlib craft available
-        arch_lib_folder = '{}-unknown-linux-gnu'.format(self.arch_trans[get_current_arch()])
-        lib_folder = os.path.join(self.install_path, 'rust-std-{}'.format(arch_lib_folder),
-                                  'lib', 'rustlib', arch_lib_folder, 'lib')
+        arch_lib_folder = f'{self.arch_trans[get_current_arch()]}-unknown-linux-gnu'
+        lib_folder = os.path.join(
+            self.install_path,
+            f'rust-std-{arch_lib_folder}',
+            'lib',
+            'rustlib',
+            arch_lib_folder,
+            'lib',
+        )
         arch_dest_lib_folder = os.path.join(self.install_path, 'rustc', 'lib', 'rustlib', arch_lib_folder, 'lib')
         os.mkdir(arch_dest_lib_folder)
         for f in os.listdir(lib_folder):

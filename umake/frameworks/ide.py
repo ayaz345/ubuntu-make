@@ -77,14 +77,13 @@ class BaseEclipse(umake.frameworks.baseinstaller.BaseInstaller, metaclass=ABCMet
 
     def parse_download_link(self, line, in_download):
         """Parse Eclipse download links"""
-        if self.download_keyword in line and self.bits in line and 'linux' in line:
-            in_download = True
-        else:
-            in_download = False
+        in_download = (
+            self.download_keyword in line and self.bits in line and 'linux' in line
+        )
         if in_download:
             p = re.search(r"href='(https:)?\/\/www.eclipse.org(.*)'", line)
             with suppress(AttributeError):
-                self.new_download_url = "https://www.eclipse.org" + p.group(2) + '.sha512&r=1'
+                self.new_download_url = f"https://www.eclipse.org{p[2]}.sha512&r=1"
         return (None, in_download)
 
     @MainLoop.in_mainloop_thread
@@ -115,7 +114,7 @@ class BaseEclipse(umake.frameworks.baseinstaller.BaseInstaller, metaclass=ABCMet
         """Save correct Eclipse icon"""
         icon = download_result.pop(self.icon_url).fd.name
         shutil.copy(icon, os.path.join(self.install_path, self.icon_filename))
-        logger.debug("Copied icon: {}".format(self.icon_url))
+        logger.debug(f"Copied icon: {self.icon_url}")
 
 
 class EclipseJava(BaseEclipse):
@@ -204,7 +203,7 @@ class BaseJetBrains(umake.frameworks.baseinstaller.BaseInstaller, metaclass=ABCM
             current_required_files_path = kwargs.get("required_files_path", [])
             current_required_files_path.append(os.path.join("bin", self.executable))
             kwargs["required_files_path"] = current_required_files_path
-        download_page = "https://data.services.jetbrains.com/products/releases?code={}".format(self.download_keyword)
+        download_page = f"https://data.services.jetbrains.com/products/releases?code={self.download_keyword}"
         kwargs["download_page"] = download_page
         kwargs["json"] = True
         kwargs["checksum_type"] = ChecksumType.sha256
@@ -237,7 +236,7 @@ class BaseJetBrains(umake.frameworks.baseinstaller.BaseInstaller, metaclass=ABCM
     def post_install(self):
         """Create the appropriate JetBrains launcher."""
         icon_path = os.path.join(self.install_path, 'bin', self.icon_filename)
-        comment = self.description + " (UDTC)"
+        comment = f"{self.description} (UDTC)"
         categories = "Development;IDE;"
         create_launcher(self.desktop_filename,
                         get_application_desktop_file(name=self.name,
@@ -464,16 +463,13 @@ class Netbeans(umake.frameworks.baseinstaller.BaseInstaller, metaclass=ABCMeta):
 
     def parse_download_link(self, line, in_download):
         """Parse NetBeans download links"""
-        if '[DIR]' in line:
-            in_download = True
-        else:
-            in_download = False
+        in_download = '[DIR]' in line
         if in_download:
             p = re.search(r'\[DIR\]\"> <a href=\"(\S+)\/\"', line)
             with suppress(AttributeError):
-                self.new_download_url = self.download_page.replace('?C=M;O=D',
-                                                                   '{}/'.format(p.group(1)) +
-                                                                   'netbeans-{}-bin.zip.sha512'.format(p.group(1)))
+                self.new_download_url = self.download_page.replace(
+                    '?C=M;O=D', (f'{p[1]}/' + f'netbeans-{p[1]}-bin.zip.sha512')
+                )
         return (None, in_download)
 
     @MainLoop.in_mainloop_thread
@@ -619,7 +615,10 @@ class DBeaver(umake.frameworks.baseinstaller.BaseInstaller):
     def parse_download_link(self, line, in_download):
         url = None
         for asset in line["assets"]:
-            if "linux.gtk.{}.tar.gz".format(self.arch_trans[get_current_arch()]) in asset["browser_download_url"]:
+            if (
+                f"linux.gtk.{self.arch_trans[get_current_arch()]}.tar.gz"
+                in asset["browser_download_url"]
+            ):
                 in_download = True
                 url = asset["browser_download_url"]
         return (url, in_download)
@@ -653,10 +652,12 @@ class SublimeText(umake.frameworks.baseinstaller.BaseInstaller):
     def parse_download_link(self, line, in_download):
         """Parse SublimeText download links"""
         url = None
-        if '{}.tar.xz'.format(self.arch_trans[get_current_arch()]) in line:
-            p = re.search(r'href="([^<]*{}.tar.xz)"'.format(self.arch_trans[get_current_arch()]), line)
+        if f'{self.arch_trans[get_current_arch()]}.tar.xz' in line:
+            p = re.search(
+                f'href="([^<]*{self.arch_trans[get_current_arch()]}.tar.xz)"', line
+            )
             with suppress(AttributeError):
-                url = p.group(1)
+                url = p[1]
         return ((url, None), in_download)
 
     def post_install(self):
@@ -691,10 +692,12 @@ class SpringToolsSuite(umake.frameworks.baseinstaller.BaseInstaller):
     def parse_download_link(self, line, in_download):
         """Parse STS download links"""    
         url = None
-        if '{}.tar.gz'.format(self.arch_trans[get_current_arch()]) in line:
-            p = re.search(r'href="([^<]*{}.tar.gz)"'.format(self.arch_trans[get_current_arch()]), line)
+        if f'{self.arch_trans[get_current_arch()]}.tar.gz' in line:
+            p = re.search(
+                f'href="([^<]*{self.arch_trans[get_current_arch()]}.tar.gz)"', line
+            )
             with suppress(AttributeError):
-                url = p.group(1)
+                url = p[1]
         return ((url, None), in_download)
 
     def post_install(self):
@@ -728,7 +731,10 @@ class Processing(umake.frameworks.baseinstaller.BaseInstaller):
     def parse_download_link(self, line, in_download):
         url = None
         for asset in line["assets"]:
-            if "linux{}".format(self.arch_trans[get_current_arch()]) in asset["browser_download_url"]:
+            if (
+                f"linux{self.arch_trans[get_current_arch()]}"
+                in asset["browser_download_url"]
+            ):
                 in_download = True
                 url = asset["browser_download_url"]
         return (url, in_download)
@@ -763,7 +769,10 @@ class LiteIDE(umake.frameworks.baseinstaller.BaseInstaller):
     def parse_download_link(self, line, in_download):
         url = None
         for asset in line["assets"]:
-            if "linux{}-qt5".format(self.arch_trans[get_current_arch()]) in asset["browser_download_url"]:
+            if (
+                f"linux{self.arch_trans[get_current_arch()]}-qt5"
+                in asset["browser_download_url"]
+            ):
                 in_download = True
                 url = asset["browser_download_url"]
         return (url, in_download)
@@ -801,9 +810,9 @@ class RStudio(umake.frameworks.baseinstaller.BaseInstaller):
         else:
             ubuntu_version = 'bionic'
         if '-debian.tar.gz' in line:
-            p = re.search(r'href=\"([^<]*{}.*-debian\.tar\.gz)\"'.format(ubuntu_version), line)
+            p = re.search(f'href=\"([^<]*{ubuntu_version}.*-debian\.tar\.gz)\"', line)
             with suppress(AttributeError):
-                url = p.group(1)
+                url = p[1]
         return ((url, checksum), in_download)
 
     def post_install(self):
@@ -836,8 +845,9 @@ class VSCodium(umake.frameworks.baseinstaller.BaseInstaller):
     def parse_download_link(self, line, in_download):
         url = None
         for asset in line["assets"]:
-            if "linux-{}".format(self.arch_trans[get_current_arch()]) in asset["browser_download_url"]\
-               and asset["browser_download_url"].endswith(".tar.gz"):
+            if f"linux-{self.arch_trans[get_current_arch()]}" in asset[
+                "browser_download_url"
+            ] and asset["browser_download_url"].endswith(".tar.gz"):
                 in_download = True
                 url = asset["browser_download_url"]
         return (url, in_download)

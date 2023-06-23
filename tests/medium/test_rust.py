@@ -42,6 +42,6 @@ class RustInContainer(ContainerTests, test_rust.RustTests):
         """Installing Rust should fail if download reference page has significantly changed"""
         download_page_file_path = os.path.join(get_data_dir(), "server-content", "www.rust-lang.org",
                                                "en-US", "other-installers.html")
-        umake_command = self.command('{} rust'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} rust')
         self.bad_download_page_test(umake_command, download_page_file_path)
         self.assertFalse(self.path_exists(self.exec_path))

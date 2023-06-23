@@ -46,15 +46,13 @@ class TextWithChoices:
         default_found = False
         for choice in choices:
             if choice.id in current_ids:
-                message = "{} choice id is already in registered ids. Can't instantiate this " \
-                          "interaction".format(choice.id)
+                message = f"{choice.id} choice id is already in registered ids. Can't instantiate this interaction"
                 logger.error(message)
                 raise BaseException(message)
             current_ids.append(choice.id)
             if choice.is_default:
                 if default_found:
-                    message = "One default was already registered, can't register a second one in that choices set: {}"\
-                              .format([choice.label for choice in choices])
+                    message = f"One default was already registered, can't register a second one in that choices set: {[choice.label for choice in choices]}"
                     logger.error(message)
                     raise BaseException(message)
                 default_found = True
@@ -66,22 +64,25 @@ class TextWithChoices:
         """Return associated callback for choice"""
         for choice in self.choices:
             if (choice_id is not None and choice.id == choice_id) or\
-                    (answer is not None and (choice.label.lower() == answer.lower() or
+                        (answer is not None and (choice.label.lower() == answer.lower() or
                                              (choice.txt_shorcut is not None and
                                               choice.txt_shorcut.lower() == answer.lower()))):
                 return choice.callback_fn()
         msg = _("No suitable answer provided")
         if choice_id is not None:
             msg = _("Your entry '{}' isn't an acceptable choice. choices are: {}")\
-                .format(choice_id, [choice.id for choice in self.choices])
+                    .format(choice_id, [choice.id for choice in self.choices])
         if answer is not None:
-            txt_shortcuts = [choice.txt_shorcut for choice in self.choices if choice.txt_shorcut is not None]
-            if txt_shortcuts:
+            if txt_shortcuts := [
+                choice.txt_shorcut
+                for choice in self.choices
+                if choice.txt_shorcut is not None
+            ]:
                 msg = _("Your entry '{}' isn't an acceptable choice. choices are: {} and {}")\
-                    .format(answer, txt_shortcuts, [choice.label for choice in self.choices])
+                        .format(answer, txt_shortcuts, [choice.label for choice in self.choices])
             else:
                 msg = _("Your entry '{}' isn't an acceptable choice. choices are: {}")\
-                    .format(answer, [choice.label for choice in self.choices])
+                        .format(answer, [choice.label for choice in self.choices])
 
         if not choice_id and not answer:
             for choice in self.choices:
@@ -99,13 +100,11 @@ class TextWithChoices:
                 # NOTE: sum of answers
                 answer += _(" ({})").format((choice.txt_shorcut))
             possible_answers.append(answer)
-        if self.newline_before_option:
-            # NOTE: first is prompt, newline and then set of answers
-            prompt = _("{}\n[{}] ").format(self.content, '/'.join(possible_answers))
-        else:
-            # NOTE: first is prompt, then set of answers:
-            prompt = _("{} [{}] ").format(self.content, '/'.join(possible_answers))
-        return prompt
+        return (
+            _("{}\n[{}] ").format(self.content, '/'.join(possible_answers))
+            if self.newline_before_option
+            else _("{} [{}] ").format(self.content, '/'.join(possible_answers))
+        )
 
 
 class LicenseAgreement(TextWithChoices):

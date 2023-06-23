@@ -38,9 +38,8 @@ def get_version():
     version = open(os.path.join(os.path.dirname(__file__), 'version'), 'r', encoding='utf-8').read().strip()
     if not from_dev:
         snap_appendix = ''
-        snap_rev = os.getenv('SNAP_REVISION')
-        if snap_rev:
-            snap_appendix = '+snap{}'.format(snap_rev)
+        if snap_rev := os.getenv('SNAP_REVISION'):
+            snap_appendix = f'+snap{snap_rev}'
         return version + snap_appendix
     import subprocess
     try:
@@ -58,5 +57,4 @@ def get_latest_version():
         page.raise_for_status()
     except Exception as e:
         raise e
-    latest = page.json().get("tag_name")
-    return latest
+    return page.json().get("tag_name")

@@ -39,8 +39,8 @@ class AndroidStudioTests(LargeFrameworkTests):
 
     def test_default_android_studio_install(self):
         """Install android studio from scratch test case"""
-        self.child = spawn_process(self.command('{} android android-studio'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} android android-studio'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"\[I Accept.*\]")  # ensure we have a license question
         self.child.sendline("a")
@@ -61,7 +61,7 @@ class AndroidStudioTests(LargeFrameworkTests):
         self.assertEqual(proc.wait(self.TIMEOUT_STOP), 143)
 
         # ensure that it's detected as installed:
-        self.child = spawn_process(self.command('{} android android-studio'.format(UMAKE)))
+        self.child = spawn_process(self.command(f'{UMAKE} android android-studio'))
         self.expect_and_no_warn(r"Android Studio is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()
@@ -82,8 +82,8 @@ class AndroidSDKTests(LargeFrameworkTests):
 
     def test_default_android_sdk_install(self):
         """Install android sdk from scratch test case"""
-        self.child = spawn_process(self.command('{} android android-sdk'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} android android-sdk'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"\[I Accept.*\]")  # ensure we have a license question
         self.child.sendline("a")
@@ -101,7 +101,7 @@ class AndroidSDKTests(LargeFrameworkTests):
                          0)
 
         # ensure that it's detected as installed:
-        self.child = spawn_process(self.command('{} android android-sdk'.format(UMAKE)))
+        self.child = spawn_process(self.command(f'{UMAKE} android android-sdk'))
         self.expect_and_no_warn(r"Android SDK is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()
@@ -122,8 +122,10 @@ class AndroidPlatformToolsTests(LargeFrameworkTests):
 
     def test_default_android_platform_tools_install(self):
         """Install android sdk from scratch test case"""
-        self.child = spawn_process(self.command('{} android android-platform-tools'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(
+            self.command(f'{UMAKE} android android-platform-tools')
+        )
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"\[I Accept.*\]")  # ensure we have a license question
         self.child.sendline("a")
@@ -141,7 +143,9 @@ class AndroidPlatformToolsTests(LargeFrameworkTests):
                          0)
 
         # ensure that it's detected as installed:
-        self.child = spawn_process(self.command('{} android android-platform-tools'.format(UMAKE)))
+        self.child = spawn_process(
+            self.command(f'{UMAKE} android android-platform-tools')
+        )
         self.expect_and_no_warn(r"Android Platform Tools is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()
@@ -162,8 +166,8 @@ class AndroidNDKTests(LargeFrameworkTests):
 
     def test_default_android_ndk_install(self):
         """Install android ndk from scratch test case"""
-        self.child = spawn_process(self.command('{} android android-ndk'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} android android-ndk'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"\[I Accept.*\]")  # ensure we have a license question
         self.child.sendline("a")
@@ -175,7 +179,7 @@ class AndroidNDKTests(LargeFrameworkTests):
         self.assertTrue(self.is_in_path(self.exec_path))
 
         # ensure that it's detected as installed:
-        self.child = spawn_process(self.command('{} android android-ndk'.format(UMAKE)))
+        self.child = spawn_process(self.command(f'{UMAKE} android android-ndk'))
         self.expect_and_no_warn(r"Android NDK is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()

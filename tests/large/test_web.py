@@ -64,7 +64,7 @@ class FirefoxDevTests(LargeFrameworkTests):
         proc.wait(self.TIMEOUT_STOP)
 
         # ensure that it's detected as installed:
-        self.child = spawn_process(self.command('{} web firefox-dev'.format(UMAKE)))
+        self.child = spawn_process(self.command(f'{UMAKE} web firefox-dev'))
         self.expect_and_no_warn(r"Firefox Dev is already installed.*\[.*\] ")
         self.child.sendline()
         self.wait_and_close()
@@ -72,8 +72,8 @@ class FirefoxDevTests(LargeFrameworkTests):
     def test_default_install(self):
         """Install firefox dev from scratch test case"""
         install_language = "en-US"
-        self.child = spawn_process(self.command('{} web firefox-dev'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} web firefox-dev'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Choose language:")
         self.child.sendline("")
@@ -84,8 +84,10 @@ class FirefoxDevTests(LargeFrameworkTests):
     def test_arg_language_select_install(self):
         """Install firefox dev with language selected by --lang"""
         install_language = "bg"
-        self.child = spawn_process(self.command('{} web firefox-dev --lang={}'.format(UMAKE, install_language)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(
+            self.command(f'{UMAKE} web firefox-dev --lang={install_language}')
+        )
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -94,8 +96,8 @@ class FirefoxDevTests(LargeFrameworkTests):
     def test_interactive_language_select_install(self):
         """Install firefox dev with language selected interactively"""
         install_language = "bg"
-        self.child = spawn_process(self.command('{} web firefox-dev'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} web firefox-dev'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Choose language:")
         self.child.sendline(install_language)
@@ -106,15 +108,19 @@ class FirefoxDevTests(LargeFrameworkTests):
     def test_unavailable_language_select_install(self):
         """Installing Firefox-dev in unavailable language should be rejected"""
         install_language = "ABCdwXYZ"
-        self.child = spawn_process(self.command('{} web firefox-dev --lang={}'.format(UMAKE, install_language)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(
+            self.command(f'{UMAKE} web firefox-dev --lang={install_language}')
+        )
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.wait_and_close(expect_warn=True, exit_status=1)
 
         self.assertFalse(self.launcher_exists_and_is_pinned(self.desktop_filename))
 
     def language_file_exists(self, language):
-        return self.path_exists(os.path.join(self.installed_path, "dictionaries", "{}.aff".format(language)))
+        return self.path_exists(
+            os.path.join(self.installed_path, "dictionaries", f"{language}.aff")
+        )
 
 
 class PhantomJSTests(LargeFrameworkTests):
@@ -141,12 +147,12 @@ class PhantomJSTests(LargeFrameworkTests):
             self.additional_dirs.append(self.example_prog_dir)
             example_file = os.path.join(self.example_prog_dir, "hello.js")
             open(example_file, "w").write(self.EXAMPLE_PROJECT)
-            compile_command = ["bash", "-l", "-c", "phantomjs {}".format(example_file)]
+            compile_command = ["bash", "-l", "-c", f"phantomjs {example_file}"]
         else:  # our mock expects getting that path
             compile_command = ["bash", "-l", "phantomjs /tmp/hello.js"]
 
-        self.child = spawn_process(self.command('{} web phantomjs'.format(UMAKE)))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.child = spawn_process(self.command(f'{UMAKE} web phantomjs'))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -170,7 +176,7 @@ class GeckodriverTests(LargeFrameworkTests):
     def setUp(self):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "web", "geckodriver")
-        self.command_args = '{} web geckodriver'.format(UMAKE)
+        self.command_args = f'{UMAKE} web geckodriver'
 
     @property
     def exec_path(self):
@@ -178,7 +184,7 @@ class GeckodriverTests(LargeFrameworkTests):
 
     def test_default_install(self):
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()
@@ -210,7 +216,7 @@ class ChromedriverTests(LargeFrameworkTests):
     def setUp(self):
         super().setUp()
         self.installed_path = os.path.join(self.install_base_path, "web", "chromedriver")
-        self.command_args = '{} web chromedriver'.format(UMAKE)
+        self.command_args = f'{UMAKE} web chromedriver'
 
     @property
     def exec_path(self):
@@ -218,7 +224,7 @@ class ChromedriverTests(LargeFrameworkTests):
 
     def test_default_install(self):
         self.child = spawn_process(self.command(self.command_args))
-        self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+        self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
         self.child.sendline("")
         self.expect_and_no_warn(r"Installation done", timeout=self.TIMEOUT_INSTALL_PROGRESS)
         self.wait_and_close()

@@ -47,7 +47,7 @@ class LargeFrameworkTests(LoggedTestCase):
         self.installed_path = ""
         self.framework_name_for_profile = ""
         self.conf_path = os.path.expanduser("~/.config/umake")
-        self.install_base_path = os.path.expanduser("~/{}".format(INSTALL_DIR))
+        self.install_base_path = os.path.expanduser(f"~/{INSTALL_DIR}")
         self.binary_dir = DEFAULT_BINARY_LINK_PATH
         self.desktop_filename = ""
         self.child = None
@@ -75,7 +75,7 @@ class LargeFrameworkTests(LoggedTestCase):
         # restore original environment. Do not use the dict copy which erases the object and doesn't have the magical
         # _Environ which setenv() for subprocess
         os.environ.clear()
-        os.environ.update(self.original_env)
+        os.environ |= self.original_env
         super().tearDown()
 
     def _pid_for(self, process_grep):
@@ -92,7 +92,9 @@ class LargeFrameworkTests(LoggedTestCase):
                 # we found it
                 else:
                     return int(pid)
-        raise BaseException("The process that we can find with {} isn't started".format(process_grep))
+        raise BaseException(
+            f"The process that we can find with {process_grep} isn't started"
+        )
 
     def check_and_kill_process(self, process_grep, wait_before=0, send_sigkill=False):
         """Check a process matching process_grep exists and kill it"""
@@ -144,7 +146,9 @@ class LargeFrameworkTests(LoggedTestCase):
                 if warn_tag in content:
                     break
             else:  # nothing found:
-                raise BaseException("We didn't find an expected WARNING or ERROR in {}".format(content))
+                raise BaseException(
+                    f"We didn't find an expected WARNING or ERROR in {content}"
+                )
 
     def return_and_wait_expect(self, expect_query, timeout=-1):
         """run the expect query and return the result"""
@@ -227,7 +231,9 @@ class LargeFrameworkTests(LoggedTestCase):
             return True
         elif return_code == 1:
             return False
-        raise BaseException("Unknown return code for looking if {} is in path".format(filename))
+        raise BaseException(
+            f"Unknown return code for looking if {filename} is in path"
+        )
 
     def is_in_group(self, group):
         """return if current user is in a group"""
@@ -248,6 +254,6 @@ class LargeFrameworkTests(LoggedTestCase):
             with open(content_file_path, "w") as newfile:
                 newfile.write("foo")
             self.child = spawn_process(command)
-            self.expect_and_no_warn(r"Choose installation path: {}".format(self.installed_path))
+            self.expect_and_no_warn(f"Choose installation path: {self.installed_path}")
             self.child.sendline("")
             self.wait_and_close(expect_warn=True, exit_status=1)

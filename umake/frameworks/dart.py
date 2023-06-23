@@ -69,9 +69,10 @@ class DartLang(umake.frameworks.baseinstaller.BaseInstaller):
     def parse_download_link(self, line, in_download):
         """Parse Flutter SDK download links"""
         in_download = True
-        url = "https://storage.googleapis.com/dart-archive/channels/stable/" + \
-              "release/{}/sdk/".format(line["version"]) +\
-              "dartsdk-linux-{}-release.zip".format(self.arch_trans[get_current_arch()])
+        url = (
+            f'https://storage.googleapis.com/dart-archive/channels/stable/release/{line["version"]}/sdk/'
+            + f"dartsdk-linux-{self.arch_trans[get_current_arch()]}-release.zip"
+        )
         return (url, in_download)
 
     def post_install(self):

@@ -44,8 +44,12 @@ class ContainerTests(LoggedTestCase):
         self.umake_path = get_root_dir()
         # Docker permissions
         os.chmod(os.path.join(get_root_dir(), "docker", "umake_docker"), 0o600)
-        self.install_base_path = os.path.expanduser("/home/{}/{}".format(self.DOCKER_USER, INSTALL_DIR))
-        self.binary_dir = self.binary_dir.replace(os.environ['HOME'], "/home/{}".format(self.DOCKER_USER))
+        self.install_base_path = os.path.expanduser(
+            f"/home/{self.DOCKER_USER}/{INSTALL_DIR}"
+        )
+        self.binary_dir = self.binary_dir.replace(
+            os.environ['HOME'], f"/home/{self.DOCKER_USER}"
+        )
         self.image_name = self.DOCKER_TESTIMAGE
         if not hasattr(self, "hosts"):
             self.hosts = {}
@@ -54,20 +58,18 @@ class ContainerTests(LoggedTestCase):
         command = [get_docker_path(), "run"]
 
         # bind master used for testing tools code inside the container
-        runner_cmd = "mkdir -p {}; ln -s {}/ {};".format(os.path.dirname(get_root_dir()), self.UMAKE_TOOLS_IN_CONTAINER,
-                                                         get_root_dir())
+        runner_cmd = f"mkdir -p {os.path.dirname(get_root_dir())}; ln -s {self.UMAKE_TOOLS_IN_CONTAINER}/ {get_root_dir()};"
 
-        local_framework_dir = "/home/{}/.umake/frameworks/".format(self.DOCKER_USER)
-        runner_cmd += "mkdir -p {};".format(local_framework_dir)
+        local_framework_dir = f"/home/{self.DOCKER_USER}/.umake/frameworks/"
+        runner_cmd += f"mkdir -p {local_framework_dir};"
         for additional_framework in self.additional_local_frameworks:
-            runner_cmd += "cp {} {};".format(
-                os.path.join(self.UMAKE_TOOLS_IN_CONTAINER, additional_framework), local_framework_dir)
+            runner_cmd += f"cp {os.path.join(self.UMAKE_TOOLS_IN_CONTAINER, additional_framework)} {local_framework_dir};"
 
         if not BRANCH_TESTS:
             # create a system binary which will use system umake version (without having the package installed)
             bin_umake = "/usr/bin/umake"
             runner_cmd += "echo '#!/usr/bin/env python3\nfrom umake import main\nif __name__ == \"__main__\":" \
-                          "\n  main()'>{bin_umake}; chmod +x {bin_umake};".format(bin_umake=bin_umake)
+                              "\n  main()'>{bin_umake}; chmod +x {bin_umake};".format(bin_umake=bin_umake)
 
         # start the local server at container startup
         for port, hostnames in self.hosts.items():
@@ -75,40 +77,41 @@ class ContainerTests(LoggedTestCase):
             for hostname in hostnames:
                 if "-h" not in command:
                     command.extend(["-h", hostname])
-                runner_cmd += ' echo "127.0.0.1 {}" >> /etc/hosts;'.format(hostname)
-            runner_cmd += "{} {} 'sudo -E env PATH={} VIRTUAL_ENV={} {} {} {} {}';".format(
-                os.path.join(get_tools_helper_dir(), "run_in_umake_dir_async"),
-                self.UMAKE_TOOLS_IN_CONTAINER,
-                os.getenv("PATH"), os.getenv("VIRTUAL_ENV"),
-                os.path.join(get_tools_helper_dir(), "run_local_server"),
-                str(port),
-                str(ftp_redir),
-                " ".join(hostnames) if port == 443 else "")
+                runner_cmd += f' echo "127.0.0.1 {hostname}" >> /etc/hosts;'
+            runner_cmd += f"""{os.path.join(get_tools_helper_dir(), "run_in_umake_dir_async")} {self.UMAKE_TOOLS_IN_CONTAINER} 'sudo -E env PATH={os.getenv("PATH")} VIRTUAL_ENV={os.getenv("VIRTUAL_ENV")} {os.path.join(get_tools_helper_dir(), "run_local_server")} {str(port)} {str(ftp_redir)} {" ".join(hostnames) if port == 443 else ""}';"""
 
             if ftp_redir:
                 runner_cmd += "/usr/bin/twistd ftp -p 21 -r {};".format(os.path.join(get_data_dir(), 'server-content',
                                                                                      hostnames[0]))
 
         if hasattr(self, "apt_repo_override_path"):
-            runner_cmd += "sh -c 'echo deb file:{} / > /etc/apt/sources.list'; apt-get update;".format(
-                self.apt_repo_override_path)
+            runner_cmd += f"sh -c 'echo deb file:{self.apt_repo_override_path} / > /etc/apt/sources.list'; apt-get update;"
         runner_cmd += "/usr/sbin/sshd -D"
 
         # we bindmount system umake directory
         if not BRANCH_TESTS:
             command.extend(["-v", "{system_umake}:{system_umake}".format(system_umake=SYSTEM_UMAKE_DIR)])
 
-        command.extend(["-d", "-v", "{}:{}".format(self.umake_path, self.UMAKE_TOOLS_IN_CONTAINER),
-                        "--dns=8.8.8.8", "--dns=8.8.4.4",  # suppress local DNS warning
-                        self.image_name,
-                        'sh', '-c', runner_cmd])
+        command.extend(
+            [
+                "-d",
+                "-v",
+                f"{self.umake_path}:{self.UMAKE_TOOLS_IN_CONTAINER}",
+                "--dns=8.8.8.8",
+                "--dns=8.8.4.4",
+                self.image_name,
+                'sh',
+                '-c',
+                runner_cmd,
+            ]
+        )
 
         self.container_id = subprocess.check_output(command).decode("utf-8").strip()
         self.container_ip = subprocess.check_output([get_docker_path(), "inspect", "-f",
                                                      "{{ .NetworkSettings.IPAddress }}",
                                                      self.container_id]).decode("utf-8").strip()
         # override with container paths
-        self.conf_path = os.path.expanduser("/home/{}/.config/umake".format(self.DOCKER_USER))
+        self.conf_path = os.path.expanduser(f"/home/{self.DOCKER_USER}/.config/umake")
         sleep(5)  # let the container and service starts
 
     def tearDown(self):
@@ -126,11 +129,19 @@ class ContainerTests(LoggedTestCase):
 
         if isinstance(commands_to_run, list):
             commands_to_run = " ".join(commands_to_run)
-        return ["ssh", "-i", os.path.join(get_root_dir(), "docker", "umake_docker"),
-                "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", "-t", "-q",
-                "{}@{}".format(self.DOCKER_USER, self.container_ip),
-                "{} {} '{}'".format(os.path.join(get_tools_helper_dir(), "run_in_umake_dir"),
-                                    self.UMAKE_TOOLS_IN_CONTAINER, commands_to_run)]
+        return [
+            "ssh",
+            "-i",
+            os.path.join(get_root_dir(), "docker", "umake_docker"),
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-t",
+            "-q",
+            f"{self.DOCKER_USER}@{self.container_ip}",
+            f"""{os.path.join(get_tools_helper_dir(), "run_in_umake_dir")} {self.UMAKE_TOOLS_IN_CONTAINER} '{commands_to_run}'""",
+        ]
 
     def check_and_kill_process(self, process_grep, wait_before=0, send_sigkill=False):
         """Check a process matching process_grep exists and kill it"""
@@ -139,7 +150,9 @@ class ContainerTests(LoggedTestCase):
                                                                                       "check_and_kill_process"),
                                                                          send_sigkill,
                                                                          " ".join(process_grep))))[0]:
-            raise BaseException("The process we try to find and kill can't be found: {}".format(process_grep))
+            raise BaseException(
+                f"The process we try to find and kill can't be found: {process_grep}"
+            )
 
     def _get_path_from_desktop_file(self, key, abspath_transform=None):
         """get the path referred as key in the desktop filename exists"""
@@ -147,12 +160,11 @@ class ContainerTests(LoggedTestCase):
         command = self.command_as_list([os.path.join(get_tools_helper_dir(), "get_path_from_desktop_file"),
                                        self.desktop_filename, key])
         success, stdout, stderr = self._exec_command(command)
-        if success:
-            path = stdout
-            if not path.startswith("/") and abspath_transform:
-                path = abspath_transform(path)
-        else:
-            raise BaseException("Unknown failure from {}".format(command))
+        if not success:
+            raise BaseException(f"Unknown failure from {command}")
+        path = stdout
+        if not path.startswith("/") and abspath_transform:
+            path = abspath_transform(path)
         return path
 
     def _exec_command(self, command):
@@ -170,7 +182,7 @@ class ContainerTests(LoggedTestCase):
             return (True, stdout, stderr)
         elif return_code == 1:
             return (False, stdout, stderr)
-        raise BaseException("Unknown return code from {}".format(command))
+        raise BaseException(f"Unknown return code from {command}")
 
     def get_launcher_path(self, desktop_filename):
         """Return launcher path inside container"""
@@ -187,13 +199,13 @@ class ContainerTests(LoggedTestCase):
     def path_exists(self, path):
         """Check if a path exists inside the container"""
         # replace current user home dir with container one.
-        path = path.replace(os.environ['HOME'], "/home/{}".format(self.DOCKER_USER))
+        path = path.replace(os.environ['HOME'], f"/home/{self.DOCKER_USER}")
         command = self.command_as_list([os.path.join(get_tools_helper_dir(), "path_exists"), path])
         return self._exec_command(command)[0]
 
     def remove_path(self, path):
         """Remove targeted path"""
-        path = path.replace(os.environ['HOME'], "/home/{}".format(self.DOCKER_USER))
+        path = path.replace(os.environ['HOME'], f"/home/{self.DOCKER_USER}")
         command = self.command_as_list([os.path.join(get_tools_helper_dir(), "remove_path"), path])
         self._exec_command(command)
 
@@ -213,7 +225,7 @@ class ContainerTests(LoggedTestCase):
         if success:
             return stdout
         else:
-            raise BaseException("Unknown failure from {}".format(command))
+            raise BaseException(f"Unknown failure from {command}")
 
     def create_file(self, path, content):
         """Create file inside the container.replace in path current user with the docker user"""
@@ -226,4 +238,4 @@ class ContainerTests(LoggedTestCase):
         dir_path = os.path.dirname(path)
         command = self.command_as_list(["mkdir", "-p", dir_path, path])
         if not self._exec_command(command)[0]:
-            raise BaseException("Couldn't create {} in container".format(path))
+            raise BaseException(f"Couldn't create {path} in container")

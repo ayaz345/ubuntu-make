@@ -55,17 +55,22 @@ class BaseCategory():
         self.frameworks = NoneDict()
         self.packages_requirements = [] if packages_requirements is None else packages_requirements
         if self.prog_name in self.categories:
-            logger.warning("There is already a registered category with {} as a name. Don't register the second one."
-                           .format(name))
+            logger.warning(
+                f"There is already a registered category with {name} as a name. Don't register the second one."
+            )
         else:
             self.categories[self.prog_name] = self
 
     @classproperty
     def main_category(self):
-        for category in self.categories.values():
-            if category.is_main_category:
-                return category
-        return None
+        return next(
+            (
+                category
+                for category in self.categories.values()
+                if category.is_main_category
+            ),
+            None,
+        )
 
     @property
     def prog_name(self):
@@ -75,33 +80,44 @@ class BaseCategory():
     @property
     def default_framework(self):
         """Get default framework"""
-        for framework in self.frameworks.values():
-            if framework.is_category_default:
-                return framework
-        return None
+        return next(
+            (
+                framework
+                for framework in self.frameworks.values()
+                if framework.is_category_default
+            ),
+            None,
+        )
 
     def register_framework(self, framework):
         """Register a new framework"""
         if framework.prog_name in self.frameworks:
-            logger.error("There is already a registered framework with {} as a name. Don't register the second one."
-                         .format(framework.name))
+            logger.error(
+                f"There is already a registered framework with {framework.name} as a name. Don't register the second one."
+            )
         else:
             self.frameworks[framework.prog_name] = framework
 
     @property
     def is_installed(self):
         """Return if the category is installed"""
-        installed_frameworks = [framework for framework in self.frameworks.values() if framework.is_installed]
-        if len(installed_frameworks) == 0:
+        if installed_frameworks := [
+            framework
+            for framework in self.frameworks.values()
+            if framework.is_installed
+        ]:
+            return (
+                self.FULLY_INSTALLED
+                if len(installed_frameworks) == len(self.frameworks)
+                else self.PARTIALLY_INSTALLED
+            )
+        else:
             return self.NOT_INSTALLED
-        if len(installed_frameworks) == len(self.frameworks):
-            return self.FULLY_INSTALLED
-        return self.PARTIALLY_INSTALLED
 
     def install_category_parser(self, parser):
         """Install category parser and get frameworks"""
         if not self.has_frameworks():
-            logging.debug("Skipping {} having no framework".format(self.name))
+            logging.debug(f"Skipping {self.name} having no framework")
             return
         # framework parser is directly category parser
         if self.is_main_category:
@@ -126,7 +142,9 @@ class BaseCategory():
         # try to call default framework if any
         if not args.framework:
             if not self.default_framework:
-                message = _("A default framework for category {} was requested where there is none".format(self.name))
+                message = _(
+                    f"A default framework for category {self.name} was requested where there is none"
+                )
                 logger.error(message)
                 self.category_parser.print_usage()
                 UI.return_main_screen(status_code=2)
@@ -178,12 +196,12 @@ class BaseFramework(metaclass=abc.ABCMeta):
 
         if self.is_category_default:
             if self.category == BaseCategory.main_category:
-                logger.error("Main category can't have default framework as {} requires".format(name))
+                logger.error(f"Main category can't have default framework as {name} requires")
                 self.is_category_default = False
             elif self.category.default_framework is not None:
-                logger.error("Can't set {} as default for {}: this category already has a default framework ({}). "
-                             "Don't set any as default".format(category.name, name,
-                                                               self.category.default_framework.name))
+                logger.error(
+                    f"Can't set {category.name} as default for {name}: this category already has a default framework ({self.category.default_framework.name}). Don't set any as default"
+                )
                 self.is_category_default = False
                 self.category.default_framework.is_category_default = False
 
@@ -194,14 +212,13 @@ class BaseFramework(metaclass=abc.ABCMeta):
         self.install_path = self.default_install_path
         # check if we have an install path previously set
         config = ConfigHandler().config
-        try:
+        with suppress(TypeError, KeyError, FileNotFoundError):
             self.install_path = config["frameworks"][category.prog_name][self.prog_name]["path"]
-        except (TypeError, KeyError, FileNotFoundError):
-            pass
-
         # This requires install_path and will register need_root or not
         if not force_loading and not self.is_installed and not self.is_installable:
-            logger.info("Don't register {} as it's not installable on this configuration.".format(name))
+            logger.info(
+                f"Don't register {name} as it's not installable on this configuration."
+            )
             return
 
         category.register_framework(self)
@@ -216,23 +233,27 @@ class BaseFramework(metaclass=abc.ABCMeta):
                 # we have some restricted archs, check we support it
                 current_arch = get_current_arch()
                 if current_arch not in self.only_on_archs:
-                    logger.debug("{} only supports {} archs and you are on {}.".format(self.name, self.only_on_archs,
-                                                                                       current_arch))
+                    logger.debug(
+                        f"{self.name} only supports {self.only_on_archs} archs and you are on {current_arch}."
+                    )
                     return False
-            if self.only_ubuntu:
                 # set framework installable only on ubuntu
-                if get_current_distro_id() != "ubuntu":
+            if get_current_distro_id() != "ubuntu":
+                if self.only_ubuntu:
                     return False
             if len(self.only_ubuntu_version) > 0:
                 current_version = get_current_distro_version()
                 if current_version not in self.only_ubuntu_version:
-                    logger.debug("{} only supports {} and you are on {}.".format(self.name, self.only_ubuntu_version,
-                                                                                 current_version))
+                    logger.debug(
+                        f"{self.name} only supports {self.only_ubuntu_version} and you are on {current_version}."
+                    )
                     return False
             if not RequirementsHandler().is_bucket_available(self.packages_requirements):
                 return False
         except:
-            logger.error("An error occurred when detecting platform, don't register {}".format(self.name))
+            logger.error(
+                f"An error occurred when detecting platform, don't register {self.name}"
+            )
             return False
         return True
 
@@ -251,12 +272,20 @@ class BaseFramework(metaclass=abc.ABCMeta):
         if not self.dry_run and self.need_root_access and os.geteuid() != 0:
             logger.debug("Requesting root access")
             cmd = ["sudo", "-E", "env"]
-            for var in ["PATH", "LD_LIBRARY_PATH", "PYTHONUSERBASE", "PYTHONHOME", "PYTHONPATH"]:
-                if os.getenv(var):
-                    cmd.append("{}={}".format(var, os.getenv(var)))
+            cmd.extend(
+                f"{var}={os.getenv(var)}"
+                for var in [
+                    "PATH",
+                    "LD_LIBRARY_PATH",
+                    "PYTHONUSERBASE",
+                    "PYTHONHOME",
+                    "PYTHONPATH",
+                ]
+                if os.getenv(var)
+            )
             if os.getenv("SNAP"):
                 logger.debug("Found snap environment. Running correct python version")
-                cmd.extend(["{}/usr/bin/python3".format(os.getenv("SNAP"))])
+                cmd.extend([f'{os.getenv("SNAP")}/usr/bin/python3'])
             cmd.extend(sys.argv)
             MainLoop().quit(subprocess.call(cmd))
 
@@ -267,7 +296,7 @@ class BaseFramework(metaclass=abc.ABCMeta):
     def remove(self):
         """Method call to remove the current framework"""
         if not self.is_installed:
-            logger.error(_("You can't remove {} as it isn't installed".format(self.name)))
+            logger.error(_(f"You can't remove {self.name} as it isn't installed"))
             UI.return_main_screen(status_code=2)
 
     def mark_in_config(self):
@@ -289,9 +318,9 @@ class BaseFramework(metaclass=abc.ABCMeta):
         """Method call to know if the framework is installed"""
         if not os.path.isdir(self.install_path):
             return False
-        if not RequirementsHandler().is_bucket_installed(self.packages_requirements):
-            return False
-        return True
+        return bool(
+            RequirementsHandler().is_bucket_installed(self.packages_requirements)
+        )
 
     def install_framework_parser(self, parser):
         """Install framework parser"""
@@ -310,7 +339,7 @@ class BaseFramework(metaclass=abc.ABCMeta):
 
     def run_for(self, args):
         """Running commands from args namespace"""
-        logger.debug("Call run_for on {}".format(self.name))
+        logger.debug(f"Call run_for on {self.name}")
         if args.remove:
             if args.destdir:
                 message = "You can't specify a destination dir while removing a framework"
@@ -319,14 +348,10 @@ class BaseFramework(metaclass=abc.ABCMeta):
             self.remove()
         else:
             install_path = None
-            auto_accept_license = False
-            dry_run = False
             if args.destdir:
                 install_path = os.path.abspath(os.path.expanduser(args.destdir))
-            if self.expect_license and args.accept_license:
-                auto_accept_license = True
-            if args.dry_run:
-                dry_run = True
+            auto_accept_license = bool(self.expect_license and args.accept_license)
+            dry_run = bool(args.dry_run)
             self.setup(install_path=install_path,
                        auto_accept_license=auto_accept_license,
                        dry_run=dry_run)
@@ -348,7 +373,7 @@ def _is_frameworkclass(o):
 
 
 def load_module(module_abs_name, main_category, force_loading):
-    logger.debug("New framework module: {}".format(module_abs_name))
+    logger.debug(f"New framework module: {module_abs_name}")
     if module_abs_name not in sys.modules:
         import_module(module_abs_name)
     else:
@@ -356,14 +381,14 @@ def load_module(module_abs_name, main_category, force_loading):
     module = sys.modules[module_abs_name]
     current_category = main_category  # if no category found -> we assign to main category
     for category_name, CategoryClass in inspect.getmembers(module, _is_categoryclass):
-        logger.debug("Found category: {}".format(category_name))
+        logger.debug(f"Found category: {category_name}")
         current_category = CategoryClass()
     # if we didn't register the category: escape the framework registration
     if current_category not in BaseCategory.categories.values():
         return
     for framework_name, FrameworkClass in inspect.getmembers(module, _is_frameworkclass):
         if FrameworkClass(category=current_category, force_loading=force_loading) is not None:
-            logger.debug("Attach framework {} to {}".format(framework_name, current_category.name))
+            logger.debug(f"Attach framework {framework_name} to {current_category.name}")
 
 
 def list_frameworks():
@@ -390,9 +415,9 @@ def list_frameworks():
             },
         ]
     """
-    categories_dict = list()
+    categories_dict = []
     for category in BaseCategory.categories.values():
-        frameworks_dict = list()
+        frameworks_dict = []
         for framework in category.frameworks.values():
             new_fram = {
                 "framework_name": framework.prog_name,
@@ -427,8 +452,7 @@ def load_frameworks(force_loading=False, load_user_frameworks=True):
     if load_user_frameworks:
         local_paths = [get_user_frameworks_path()]
         sys.path.insert(0, get_user_frameworks_path())
-    environment_path = os.environ.get(UMAKE_FRAMEWORKS_ENVIRON_VARIABLE)
-    if environment_path:
+    if environment_path := os.environ.get(UMAKE_FRAMEWORKS_ENVIRON_VARIABLE):
         sys.path.insert(0, environment_path)
         local_paths.insert(0, environment_path)
 
@@ -436,5 +460,5 @@ def load_frameworks(force_loading=False, load_user_frameworks=True):
         for loader, module_name, ispkg in pkgutil.iter_modules(path=local_paths):
             load_module(module_name, main_category, force_loading)
     for loader, module_name, ispkg in pkgutil.iter_modules(path=[os.path.dirname(__file__)]):
-        module_name = "{}.{}".format(__package__, module_name)
+        module_name = f"{__package__}.{module_name}"
         load_module(module_name, main_category, force_loading)

@@ -57,7 +57,7 @@ class RequirementsHandler(object, metaclass=Singleton):
         """Check if the bucket is installed
 
         The bucket is a list of packages to check if installed."""
-        logger.debug("Check if {} is installed".format(bucket))
+        logger.debug(f"Check if {bucket} is installed")
         is_installed = True
         for pkg_name in bucket:
             if ' | ' in pkg_name:
@@ -77,7 +77,7 @@ class RequirementsHandler(object, metaclass=Singleton):
                 if "openjdk" in pkg_name:
                     is_installed = self.check_java_equiv(pkg_name)
                 else:
-                    logger.info("{} isn't installed".format(pkg_name))
+                    logger.info(f"{pkg_name} isn't installed")
                     is_installed = False
         return is_installed
 
@@ -101,14 +101,15 @@ class RequirementsHandler(object, metaclass=Singleton):
                     if arch == get_current_arch() and pkg_without_arch_name in self.cache:  # false positive, available
                         continue
                     elif arch not in get_foreign_archs():  # relax the constraint
-                        logger.info("{} isn't available on this platform, but {} isn't enabled. So it may be available "
-                                    "later on".format(pkg_name, arch))
+                        logger.info(
+                            f"{pkg_name} isn't available on this platform, but {arch} isn't enabled. So it may be available later on"
+                        )
                         continue
                 if "openjdk" in pkg_name:
                     if not self.check_java_equiv(pkg_name):
                         all_in_cache = False
                 else:
-                    logger.info("{} isn't available on this platform".format(pkg_name))
+                    logger.info(f"{pkg_name} isn't available on this platform")
                     all_in_cache = False
         return all_in_cache
 
@@ -116,7 +117,7 @@ class RequirementsHandler(object, metaclass=Singleton):
         """Check if the bucket is installed and up to date
 
         The bucket is a list of packages to check if installed."""
-        logger.debug("Check if {} is up to date".format(bucket))
+        logger.debug(f"Check if {bucket} is up to date")
         is_installed_and_uptodate = True
         for pkg_name in bucket:
             if ' | ' in pkg_name:
@@ -133,10 +134,10 @@ class RequirementsHandler(object, metaclass=Singleton):
                 if arch == get_current_arch():
                     pkg_name = pkg_without_arch_name
             if pkg_name not in self.cache or not self.cache[pkg_name].is_installed:
-                logger.info("{} isn't installed".format(pkg_name))
+                logger.info(f"{pkg_name} isn't installed")
                 is_installed_and_uptodate = False
             elif self.cache[pkg_name].is_upgradable:
-                logger.info("We can update {}".format(pkg_name))
+                logger.info(f"We can update {pkg_name}")
                 is_installed_and_uptodate = False
             if "openjdk" in pkg_name:
                 if self.check_java_equiv(pkg_name):
@@ -146,18 +147,9 @@ class RequirementsHandler(object, metaclass=Singleton):
     def check_java_equiv(self, pkg_name):
         """Add exception if java has been installed otherwhise"""
         openjdk_regex = re.search(r"openjdk-(\d+)-(j\w\w)", pkg_name)
-        required_version = openjdk_regex.group(1)
-        required_release = openjdk_regex.group(2)
-        if required_release == "jre":
-            if not self.jre_installed_version:
-                try:
-                    self.jre_installed_version = subprocess.check_output(["java", "-version"],
-                                                                         stderr=subprocess.STDOUT).decode()
-                except FileNotFoundError as e:
-                    logger.debug("Missing java command: consider it not installed")
-                    return False
-            installed_version = re.search(r"version \"([\d\.]+).*\"", self.jre_installed_version).group(1)
-        elif required_release == "jdk":
+        required_version = openjdk_regex[1]
+        required_release = openjdk_regex[2]
+        if required_release == "jdk":
             if not self.jdk_installed_version:
                 try:
                     self.jdk_installed_version = subprocess.check_output(["javac", "-version"],
@@ -165,7 +157,18 @@ class RequirementsHandler(object, metaclass=Singleton):
                 except FileNotFoundError as e:
                     logger.debug("Missing javac command: consider it not installed")
                     return False
-            installed_version = re.search(r"([\d\.]+).*", self.jdk_installed_version).group(1)
+            installed_version = re.search(r"([\d\.]+).*", self.jdk_installed_version)[1]
+        elif required_release == "jre":
+            if not self.jre_installed_version:
+                try:
+                    self.jre_installed_version = subprocess.check_output(["java", "-version"],
+                                                                         stderr=subprocess.STDOUT).decode()
+                except FileNotFoundError as e:
+                    logger.debug("Missing java command: consider it not installed")
+                    return False
+            installed_version = re.search(
+                r"version \"([\d\.]+).*\"", self.jre_installed_version
+            )[1]
         if installed_version >= required_version:
             logger.debug("Not installing openjdk since correct java version is already available")
             return True
@@ -177,7 +180,7 @@ class RequirementsHandler(object, metaclass=Singleton):
         bucket is a list of packages to install.
 
         Return a tuple (num packages to install, size packages to download)"""
-        logger.info("Installation {} pending".format(bucket))
+        logger.info(f"Installation {bucket} pending")
         bucket_pack = {
             "bucket": bucket,
             "progress_callback": progress_callback,
@@ -194,7 +197,7 @@ class RequirementsHandler(object, metaclass=Singleton):
     def _really_install_bucket(self, current_bucket):
         """Really install current bucket and bind signals"""
         bucket = current_bucket["bucket"]
-        logger.debug("Starting {} installation".format(bucket))
+        logger.debug(f"Starting {bucket} installation")
 
         # exchange file output for apt and dpkg after the fork() call (open it empty)
         self.apt_fd = tempfile.NamedTemporaryFile(delete=False)
@@ -226,13 +229,13 @@ class RequirementsHandler(object, metaclass=Singleton):
             try:
                 pkg = self.cache[pkg_name]
                 if pkg.is_installed and pkg.is_upgradable:
-                    logger.debug("Marking {} for upgrade".format(pkg_name))
+                    logger.debug(f"Marking {pkg_name} for upgrade")
                     pkg.mark_upgrade()
                 else:
-                    logger.debug("Marking {} for install".format(pkg_name))
+                    logger.debug(f"Marking {pkg_name} for install")
                     pkg.mark_install(auto_fix=False)
             except Exception as msg:
-                message = "Can't mark for install {}: {}".format(pkg_name, msg)
+                message = f"Can't mark for install {pkg_name}: {msg}"
                 raise BaseException(message)
 
         # this can raise on installedArchives() exception if the commit() fails
@@ -255,13 +258,12 @@ class RequirementsHandler(object, metaclass=Singleton):
             error_message = str(future.exception())
             with suppress(FileNotFoundError):
                 with open(self.apt_fd.name) as f:
-                    subprocess_content = f.read()
-                    if subprocess_content:
-                        error_message = "{}\nSubprocess output: {}".format(error_message, subprocess_content)
+                    if subprocess_content := f.read():
+                        error_message = f"{error_message}\nSubprocess output: {subprocess_content}"
             logger.error(error_message)
             result = result._replace(error=error_message)
         else:
-            logger.debug("{} installed".format(future.tag_bucket["bucket"]))
+            logger.debug(f'{future.tag_bucket["bucket"]} installed')
         os.remove(self.apt_fd.name)
         future.tag_bucket["installed_callback"](result)
 
@@ -284,7 +286,9 @@ class RequirementsHandler(object, metaclass=Singleton):
         def pulse(self, owner):
             percent = (((self.current_bytes + self.current_items) * 100.0) /
                        float(self.total_bytes + self.total_items))
-            logger.debug("{} download update: {}% of {}".format(self._bucket['bucket'], percent, self.total_bytes))
+            logger.debug(
+                f"{self._bucket['bucket']} download update: {percent}% of {self.total_bytes}"
+            )
             report = {"step": self._status, "percentage": percent, "pkg_size_download": self.total_bytes}
             self._progress_callback(report)
 
@@ -299,18 +303,20 @@ class RequirementsHandler(object, metaclass=Singleton):
             self._exchange_filename = exchange_filename
 
         def error(self, pkg, msg):
-            logger.error("{} installation finished with an error: {}".format(self._bucket['bucket'], msg))
+            logger.error(
+                f"{self._bucket['bucket']} installation finished with an error: {msg}"
+            )
             self._force_reload_apt_cache()  # reload apt cache
             raise BaseException(msg)
 
         def finish_update(self):
             # warning: this function can be called even if dpkg failed (it raised an exception around commit()
             # DO NOT CALL directly the callbacks from there.
-            logger.debug("Install for {} ended.".format(self._bucket['bucket']))
+            logger.debug(f"Install for {self._bucket['bucket']} ended.")
             self._force_reload_apt_cache()  # reload apt cache
 
         def status_change(self, pkg, percent, status):
-            logger.debug("{} install update: {}".format(self._bucket['bucket'], percent))
+            logger.debug(f"{self._bucket['bucket']} install update: {percent}")
             self._progress_callback({"step": self._status, "percentage": percent})
 
         @staticmethod
@@ -341,7 +347,7 @@ class RequirementsHandler(object, metaclass=Singleton):
                     try:
                         fd = int(fdname)
                     except ValueError:
-                        print("ERROR: can not get fd for '%s'" % fdname)
+                        print(f"ERROR: can not get fd for '{fdname}'")
                     if fd in required_fds:
                         continue
                     try:
@@ -352,7 +358,7 @@ class RequirementsHandler(object, metaclass=Singleton):
                         # so its ok to ignore one close error
                         error_count += 1
                         if error_count > 1:
-                            print("ERROR: os.close(%s): %s" % (fd, e))
+                            print(f"ERROR: os.close({fd}): {e}")
 
         def fork(self):
             pid = os.fork()

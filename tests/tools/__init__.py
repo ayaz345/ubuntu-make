@@ -83,9 +83,10 @@ def get_tools_helper_dir():
 def assert_files_identicals(filename1, filename2):
     """Assert if the files content are identical"""
     if open(filename1).read() != open(filename2).read():
-        logger.error("{}: {}\n{}: {}".format(filename1, open(filename1).read(),
-                                             filename2, open(filename2).read()))
-        raise AssertionError("{} and {} aren't identical".format(filename1, filename2))
+        logger.error(
+            f"{filename1}: {open(filename1).read()}\n{filename2}: {open(filename2).read()}"
+        )
+        raise AssertionError(f"{filename1} and {filename2} aren't identical")
 
 
 class CopyingMock(Mock):
@@ -183,9 +184,9 @@ def get_path_from_desktop_file(desktop_filename, key):
     path = ""
     with open(desktop_file_path) as f:
         for line in f:
-            p = re.search(r'{}=(.*)'.format(key), line)
+            p = re.search(f'{key}=(.*)', line)
             with suppress(AttributeError):
-                path = p.group(1)
+                path = p[1]
 
     # sanitize the field with unescaped quotes
     for separator in ('"', "'", " "):

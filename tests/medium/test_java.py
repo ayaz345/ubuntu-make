@@ -38,6 +38,6 @@ class AdoptOpenJDKInContainer(ContainerTests, test_java.AdoptOpenJDK):
         """Installing AdoptOpenJDK should fail if the download page has significantly changed"""
         download_page_file_path = os.path.join(get_data_dir(), "server-content", "api.adoptopenjdk.net",
                                                "v3", "info", "available_releases")
-        umake_command = self.command('{} java'.format(UMAKE))
+        umake_command = self.command(f'{UMAKE} java')
         self.bad_download_page_test(umake_command, download_page_file_path)
         self.assertFalse(self.path_exists(self.exec_path))
